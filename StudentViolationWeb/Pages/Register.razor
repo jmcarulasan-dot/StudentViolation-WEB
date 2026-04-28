@@ -1,216 +1,170 @@
 ﻿@page "/register"
 @using StudentViolationWeb.Data
+@using StudentViolationWeb.Model
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject AuthService AuthService
 
-<div style="display: flex; height: 100vh; width: 100%; font-family: 'Segoe UI', sans-serif; background-image: linear-gradient(135deg,#F9FAFB 0% , #0057B8 0%, #F9FAFB 100%); ">
+<div style="display:flex; height:100vh; width:100%; font-family:'Segoe UI',sans-serif;
+            background-image:linear-gradient(135deg, #0057B8 0%, #F9FAFB 100%);">
 
-    @*left *@
-    <div style="width: 45%; display: flex; flex-direction: column;
-                align-items: center; justify-content: center; padding: 60px 80px; flex-shrink: 0;">
-
-        <img src="Image/aclc_logo.png"
-             alt="ACLC Logo"
-             style="width: 120px; height: auto;" />
+    @* ── Left Panel ── *@
+    <div style="width:45%; display:flex; flex-direction:column; align-items:center;
+                justify-content:center; padding:60px 80px; flex-shrink:0;">
+        <img src="Image/aclc_logo.png" alt="ACLC Logo" style="width:120px; height:auto;" />
         <MudText Typo="Typo.h6" Align="Align.Center"
-                 Style="color: #EEEEEE; font-weight: 500; margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase;">
+                 Style="color:#EEEEEE; font-weight:500; margin-bottom:8px;
+                        letter-spacing:2px; text-transform:uppercase;">
             ACLC College of Mandaue
         </MudText>
         <MudText Typo="Typo.h3" Align="Align.Center"
-                 Style="color: #EEEEEE; font-weight: 800; margin-bottom: 20px; line-height: 1.2;">
+                 Style="color:#EEEEEE; font-weight:800; margin-bottom:20px; line-height:1.2;">
             Student Violation System
         </MudText>
-
     </div>
 
-    @*right*@
+    @* ── Right Panel ── *@
+    <div style="flex:1; overflow-y:auto; padding:60px 80px;">
+        <div style="width:100%; max-width:720px;
+                    background:rgba(0,87,184,0.10);
+                    backdrop-filter:blur(12px);
+                    -webkit-backdrop-filter:blur(12px);
+                    border:1px solid rgba(17,24,39,0.15);
+                    border-radius:20px; padding:48px 40px;
+                    box-shadow:0 8px 32px rgba(250,250,250,0.15);">
 
-    <div style="flex: 1; overflow-y: auto; padding: 60px 80px; justify-content: center;">
-
-        <div style="width: 100%; max-width: 720px;
-        background:  rgba(0, 87, 184, 0.10);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(17,24,39,0.15);
-        border-radius: 20px;
-        padding: 48px 40px;
-        box-shadow: 0 8px 32px rgba(250,250,250,0.15);">
-
-            <MudText Typo="Typo.h4" Style="color: #FAFAFA; font-weight: 700; margin-bottom: 8px;">
+            <MudText Typo="Typo.h4" Style="color:#FAFAFA; font-weight:700; margin-bottom:8px;">
                 Create Account
             </MudText>
-            <MudText Style="color:rgba(255,255,255,0.5);; margin-bottom: 40px;">
+            <MudText Style="color:rgba(255,255,255,0.5); margin-bottom:40px;">
                 Fill in the details below to register your account.
             </MudText>
 
-            <MudForm @ref="form" @bind-IsValid="isValid">
+            <MudForm @ref="_form" @bind-IsValid="_isValid">
 
-                @*role*@
-                <MudText Typo="Typo.overline"
-                         Style="color: #FAFAFA; letter-spacing: 2px;">
-                    Select Role
-                </MudText>
-                <MudDivider Style="border-color: rgba(255,255,255,0.15); margin-bottom: 20px;" />
+                @* ── Select Role ── *@
+                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Select Role</MudText>
+                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 36px;">
-
-                    <div @onclick="@(() => model.Role = "student")"
-                         style="@($"display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 12px; border-radius: 12px; cursor: pointer; border: 2px solid {(model.Role == "student" ? "white" : "rgba(255,255,255,0.15)")}; background: {(model.Role == "student" ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)")};")">
-                        <MudIcon Icon="@Icons.Material.Filled.School"
-                                 Style="@($"font-size: 32px; margin-bottom: 8px; color: {(model.Role == "student" ? "white" : "rgba(255,255,255,0.5)")}")" />
-                        <MudText Style="@($"font-size: 0.8rem; font-weight: {(model.Role == "student" ? "700" : "400")}; color: {(model.Role == "student" ? "white" : "rgba(255,255,255,0.6)")}")">Student</MudText>
-                    </div>
-
-                    <div @onclick="@(() => model.Role = "guard")"
-                         style="@($"display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 12px; border-radius: 12px; cursor: pointer; border: 2px solid {(model.Role == "guard" ? "white" : "rgba(255,255,255,0.15)")}; background: {(model.Role == "guard" ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)")};")">
-                        <MudIcon Icon="@Icons.Material.Filled.Security"
-                                 Style="@($"font-size: 32px; margin-bottom: 8px; color: {(model.Role == "guard" ? "white" : "rgba(255,255,255,0.5)")}")" />
-                        <MudText Style="@($"font-size: 0.8rem; font-weight: {(model.Role == "guard" ? "700" : "400")}; color: {(model.Role == "guard" ? "white" : "rgba(255,255,255,0.6)")}")">Guard</MudText>
-                    </div>
-
-                    <div @onclick="@(() => model.Role = "sao")"
-                         style="@($"display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 12px; border-radius: 12px; cursor: pointer; border: 2px solid {(model.Role == "sao" ? "white" : "rgba(255,255,255,0.15)")}; background: {(model.Role == "sao" ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)")};")">
-                        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings"
-                                 Style="@($"font-size: 32px; margin-bottom: 8px; color: {(model.Role == "sao" ? "white" : "rgba(255,255,255,0.5)")}")" />
-                        <MudText Style="@($"font-size: 0.8rem; font-weight: {(model.Role == "sao" ? "700" : "400")}; color: {(model.Role == "sao" ? "white" : "rgba(255,255,255,0.6)")}")">SAO</MudText>
-                    </div>
-
-                    <div @onclick="@(() => model.Role = "guidance")"
-                         style="@($"display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 12px; border-radius: 12px; cursor: pointer; border: 2px solid {(model.Role == "guidance" ? "white" : "rgba(255,255,255,0.15)")}; background: {(model.Role == "guidance" ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)")};")">
-                        <MudIcon Icon="@Icons.Material.Filled.SupervisorAccount"
-                                 Style="@($"font-size: 32px; margin-bottom: 8px; color: {(model.Role == "guidance" ? "white" : "rgba(255,255,255,0.5)")}")" />
-                        <MudText Style="@($"font-size: 0.8rem; font-weight: {(model.Role == "guidance" ? "700" : "400")}; color: {(model.Role == "guidance" ? "white" : "rgba(255,255,255,0.6)")}")">Guidance</MudText>
-                    </div>
-
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom:36px;">
+                    @foreach (var item in _roleOptions)
+                    {
+                        bool active = _model.Role == item.Key;
+                        <div @onclick="@(() => _model.Role = item.Key)"
+                             style="@RoleCardStyle(active)">
+                            <MudIcon Icon="@item.Icon" Style="@RoleIconStyle(active)" />
+                            <MudText Style="@RoleLabelStyle(active)">@item.Label</MudText>
+                        </div>
+                    }
                 </div>
 
+                @* ── Account Info ── *@
+                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Account Info</MudText>
+                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
 
-                <MudText Typo="Typo.overline"
-                         Style="color:  #FAFAFA; letter-spacing: 2px;">
-                    Account Info
-                </MudText>
-                <MudDivider Style="border-color: rgba(255,255,255,0.15); margin-bottom: 20px;" />
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
                     <MudTextField T="string" Label="Username"
-                                  @bind-Value="model.Username"
+                                  @bind-Value="_model.Username"
                                   Required="true" RequiredError="Required"
                                   Variant="Variant.Outlined"
-                                  InputStyle="color: white;" Style="color: #FAFAFA;" />
-
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
                     <MudTextField T="string" Label="Email"
-                                  @bind-Value="model.Email"
+                                  @bind-Value="_model.Email"
                                   Required="true" RequiredError="Required"
                                   InputType="InputType.Email"
                                   Variant="Variant.Outlined"
-                                  InputStyle="color: white;" Style="color:#FAFAFA;" />
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
                 </div>
 
                 <MudTextField T="string" Label="Password"
-                              @bind-Value="model.Password"
+                              @bind-Value="_model.Password"
                               Required="true" RequiredError="Required"
-                              InputType="@pwdType"
+                              InputType="@_pwdType"
                               Variant="Variant.Outlined"
                               Adornment="Adornment.End"
-                              AdornmentIcon="@pwdIcon"
+                              AdornmentIcon="@_pwdIcon"
                               OnAdornmentClick="TogglePassword"
                               Class="mb-8"
-                              InputStyle="color: white;" Style="color:#FAFAFA;" />
+                              InputStyle="color:white;" Style="color:#FAFAFA;" />
 
+                @* ── Personal Info ── *@
+                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Personal Info</MudText>
+                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
 
-                <MudText Typo="Typo.overline"
-                         Style="color: #FAFAFA; letter-spacing: 2px;">
-                    Personal Info
-                </MudText>
-                <MudDivider Style="border-color: rgba(255,255,255,0.15); margin-bottom: 20px;" />
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
                     <MudTextField T="string" Label="First Name"
-                                  @bind-Value="model.FirstName"
+                                  @bind-Value="_model.FirstName"
                                   Required="true" RequiredError="Required"
                                   Variant="Variant.Outlined"
-                                  InputStyle="color: white;" Style="color: #FAFAFA;" />
-
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
                     <MudTextField T="string" Label="Last Name"
-                                  @bind-Value="model.LastName"
+                                  @bind-Value="_model.LastName"
                                   Required="true" RequiredError="Required"
                                   Variant="Variant.Outlined"
-                                  InputStyle="color: white;" Style="color: #FAFAFA;" />
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
 
+                    @* _model.DateOfBirth is DateTime? — MudDatePicker @bind-Date expects DateTime?
+                       This is the only correct binding. No string, no conversion here. *@
                     <MudDatePicker Label="Date of Birth"
-                                   @bind-Date="model.DateOfBirth"
+                                   @bind-Date="_model.DateOfBirth"
                                    Variant="Variant.Outlined"
-                                   Style="color: midnightblue;"
-                                   InputStyle="color: white;" />
+                                   InputStyle="color:white;" />
 
-                    
                     <MudSelect T="string" Label="Gender"
-                               @bind-Value="model.Gender"
+                               @bind-Value="_model.Gender"
                                Variant="Variant.Outlined"
-                               Style="color:  #FAFAFA;" InputStyle="color: white;">
+                               Style="color:#FAFAFA;" InputStyle="color:white;">
                         <MudSelectItem Value="@("male")">Male</MudSelectItem>
                         <MudSelectItem Value="@("female")">Female</MudSelectItem>
                     </MudSelect>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 36px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:36px;">
                     <MudTextField T="string" Label="Address"
-                                  @bind-Value="model.Address"
+                                  @bind-Value="_model.Address"
                                   Required="true" RequiredError="Required"
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Home"
-                                  InputStyle="color: white;" Style="color: #FAFAFA;" />
-
-                   
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
                     <MudTextField T="string" Label="Phone Number (09XXXXXXXXX)"
-                                  @bind-Value="model.Number"
+                                  @bind-Value="_model.Number"
                                   Required="true" RequiredError="Required"
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Phone"
-                                  InputStyle="color: white;" Style="color: #FAFAFA;" />
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
                 </div>
 
-                @* student_info *@
-                @if (model.Role == "student")
+                @* ── Student Info ── *@
+                @if (_model.Role == "student")
                 {
-                    <MudText Typo="Typo.overline"
-                             Style="color:  #FAFAFA; letter-spacing: 2px;">
-                        Student Info
-                    </MudText>
-                    <MudDivider Style="border-color: rgba(255,255,255,0.15); margin-bottom: 20px;" />
+                    <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Student Info</MudText>
+                    <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 36px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:36px;">
                         <MudTextField T="string" Label="Student No. (C26-01-0001-MAN121)"
-                                      @bind-Value="model.StudentNo"
+                                      @bind-Value="_model.StudentNo"
                                       Required="true" RequiredError="Required"
                                       Variant="Variant.Outlined"
                                       Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Badge"
-                                      InputStyle="color: white;" Style="color: #FAFAFA;" />
-
-                       
+                                      InputStyle="color:white;" Style="color:#FAFAFA;" />
                         <MudSelect T="string" Label="Course"
-                                   @bind-Value="model.Course"
+                                   @bind-Value="_model.Course"
                                    Required="true" RequiredError="Required"
                                    Variant="Variant.Outlined"
                                    Adornment="Adornment.Start"
                                    AdornmentIcon="@Icons.Material.Filled.MenuBook"
-                                   InputStyle="color: white;" Style="color: #FAFAFA;">
+                                   InputStyle="color:white;" Style="color:#FAFAFA;">
                             <MudSelectItem Value="@("BSIT")">BSIT</MudSelectItem>
                             <MudSelectItem Value="@("BSHM")">BSHM</MudSelectItem>
                             <MudSelectItem Value="@("BSBA")">BSBA</MudSelectItem>
-                            <MudSelectItem Value="@("BSA")">BSA</MudSelectItem>
-                            <MudSelectItem Value="@("BSCS")">BSCS</MudSelectItem>
                         </MudSelect>
-
-                        
                         <MudSelect T="string" Label="Year Level"
-                                   @bind-Value="model.Year"
+                                   @bind-Value="_model.Year"
                                    Variant="Variant.Outlined"
-                                   Style="color:  #FAFAFA" InputStyle="color: white;">
+                                   Style="color:#FAFAFA;" InputStyle="color:white;">
                             <MudSelectItem Value="@("1")">1st Year</MudSelectItem>
                             <MudSelectItem Value="@("2")">2nd Year</MudSelectItem>
                             <MudSelectItem Value="@("3")">3rd Year</MudSelectItem>
@@ -221,18 +175,15 @@
 
             </MudForm>
 
-            <MudButton Variant="Variant.Filled"
-                       FullWidth="true"
-                       Size="Size.Large"
+            <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large"
                        OnClick="HandleRegister"
-                       Disabled="!isValid || isLoading || string.IsNullOrEmpty(model.Role)"
-                       Style="background: #111827; color: white; font-weight: 700;
-                              font-size: 1rem; border-radius: 8px; padding: 16px;
-                              text-transform: none; letter-spacing: 0; margin-bottom: 20px;">
-                @if (isLoading)
+                       Disabled="@(!_isValid || _isLoading || string.IsNullOrEmpty(_model.Role))"
+                       Style="background:#111827; color:white; font-weight:700;
+                              font-size:1rem; border-radius:8px; padding:16px;
+                              text-transform:none; margin-bottom:20px;">
+                @if (_isLoading)
                 {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true"
-                                         Style="margin-right: 8px;" />
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right:8px;" />
                     <span>Creating Account...</span>
                 }
                 else
@@ -241,86 +192,73 @@
                 }
             </MudButton>
 
-            <MudText Align="Align.Center"
-                     Style="color: #F9FAFB; font-size: 0.9rem; padding-bottom: 40px;">
+            <MudText Align="Align.Center" Style="color:#F9FAFB; font-size:0.9rem; padding-bottom:40px;">
                 Already have an account?
-                <MudLink Href="/login"
-                Color="Color.Inherit"
-                         Style="color: #F9FAFB; font-weight: 700;  margin-left: 4px;">
+                <MudLink Href="/login" Color="Color.Inherit"
+                         Style="color:#F9FAFB; font-weight:700; margin-left:4px;">
                     Sign In
                 </MudLink>
             </MudText>
-
         </div>
     </div>
-
 </div>
 
 @code {
-    MudForm form = default!;
-    bool isValid;
-    bool isLoading;
+    private MudForm _form = default!;
+    private bool _isValid;
+    private bool _isLoading;
+    private InputType _pwdType = InputType.Password;
+    private string _pwdIcon = Icons.Material.Filled.VisibilityOff;
 
-    InputType pwdType = InputType.Password;
-    public string pwdIcon = Icons.Material.Filled.VisibilityOff;
+    // DateOfBirth is DateTime? — MudDatePicker @bind-Date needs exactly this
+    private RegisterModel _model = new();
 
-    RegisterModel model = new();
+    // Role card data — avoids repetitive markup
+    private record RoleItem(string Key, string Label, string Icon);
+    private readonly List<RoleItem> _roleOptions =
+    [
+        new("student",  "Student",  Icons.Material.Filled.School),
+        new("guard",    "Guard",    Icons.Material.Filled.Security),
+        new("sao",      "SAO",      Icons.Material.Filled.AdminPanelSettings),
+        new("guidance", "Guidance", Icons.Material.Filled.SupervisorAccount),
+    ];
 
-    void TogglePassword()
+    private void TogglePassword()
     {
-        if (pwdType == InputType.Password)
-        {
-            pwdType = InputType.Text;
-            pwdIcon = Icons.Material.Filled.Visibility;
-        }
-        else
-        {
-            pwdType = InputType.Password;
-            pwdIcon = Icons.Material.Filled.VisibilityOff;
-        }
+        (_pwdType, _pwdIcon) = _pwdType == InputType.Password
+            ? (InputType.Text, Icons.Material.Filled.Visibility)
+            : (InputType.Password, Icons.Material.Filled.VisibilityOff);
     }
 
-    async Task HandleRegister()
+    private async Task HandleRegister()
     {
-        await form.Validate();
-        if (!isValid) return;
-        if (string.IsNullOrEmpty(model.Role))
+        await _form.Validate();
+        if (!_isValid) return;
+
+        if (string.IsNullOrEmpty(_model.Role))
         {
             Snackbar.Add("Please select a role.", Severity.Warning);
             return;
         }
+        if (_model.DateOfBirth == null)
+        {
+            Snackbar.Add("Please select your date of birth.", Severity.Warning);
+            return;
+        }
 
-        isLoading = true;
-
+        _isLoading = true;
         try
         {
-            var registerModel = new RegisterModel
-            {
-                Username = model.Username.Trim(),
-                Password = model.Password.Trim(),
-                Email = model.Email.Trim().ToLower(),
-                FirstName = model.FirstName.Trim(),
-                LastName = model.LastName.Trim(),
-                DateOfBirth = model.DateOfBirth,
-                Gender = model.Gender.ToLower(),
-                Address = model.Address.Trim(),
-                Number = model.Number.Trim(),
-                Role = model.Role.ToLower(),
-                StudentNo = model.Role == "student" ? model.StudentNo?.Trim().ToUpper() : null,
-                Course = model.Role == "student" ? model.Course?.Trim().ToUpper() : null,
-                Year = model.Role == "student" ? model.Year?.Trim() : null
-            };
-
-            var result = await AuthService.RegisterAsync(registerModel);
-
-            if (result != null && result.Status == 200)
+            // AuthService converts DateTime? → "yyyy-MM-dd" string before posting
+            var result = await AuthService.RegisterAsync(_model);
+            if (result?.Status == 200)
             {
                 Snackbar.Add("Account created successfully!", Severity.Success);
                 Nav.NavigateTo("/login");
             }
             else
             {
-                Snackbar.Add(result?.Message ?? "Registration failed. Please try again.", Severity.Error);
+                Snackbar.Add(result?.Message ?? "Registration failed.", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -329,7 +267,21 @@
         }
         finally
         {
-            isLoading = false;
+            _isLoading = false;
         }
     }
+
+    // ── Style helpers for role cards ─────────────────────────────────────────
+    private static string RoleCardStyle(bool active) =>
+        $"display:flex; flex-direction:column; align-items:center; justify-content:center; " +
+        $"padding:20px 12px; border-radius:12px; cursor:pointer; " +
+        $"border:2px solid {(active ? "white" : "rgba(255,255,255,0.15)")}; " +
+        $"background:{(active ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)")};";
+
+    private static string RoleIconStyle(bool active) =>
+        $"font-size:32px; margin-bottom:8px; color:{(active ? "white" : "rgba(255,255,255,0.5)")};";
+
+    private static string RoleLabelStyle(bool active) =>
+        $"font-size:0.8rem; font-weight:{(active ? "700" : "400")}; " +
+        $"color:{(active ? "white" : "rgba(255,255,255,0.6)")};";
 }

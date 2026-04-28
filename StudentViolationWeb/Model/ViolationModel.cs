@@ -1,17 +1,29 @@
-﻿namespace StudentViolationWeb.Model
+﻿using System.Text.Json.Serialization;
+
+namespace StudentViolationWeb.Model
 {
-    public class ViolationModel
+    // ── Shared violation item used inside reports (Guidance + SAO student reports) ──
+    public class ReportViolationItem
     {
-        public int ViolationID { get; set; }
-        public int StudentId { get; set; }
-        public string? StudentNo { get; set; }
-        public string? StudentName { get; set; }
-        public string? ViolationName { get; set; }
-        public string? Description { get; set; }
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
+        [JsonPropertyName("details")]
+        public string? Details { get; set; }
+
+        [JsonPropertyName("severity")]
         public string? Severity { get; set; }
-        public string? GuardId { get; set; }
-        public string? GuardName { get; set; }
-        public DateTime ViolationDate { get; set; }
+
+        [JsonPropertyName("date")]
+        public DateTime Date { get; set; }
+
+        [JsonPropertyName("status")]
         public string? Status { get; set; }
+
+        [JsonPropertyName("recorded_by")]
+        public string? RecordedBy { get; set; }
     }
 }

@@ -170,26 +170,16 @@
         {
             var loginModel = new LoginModel { Username = username.Trim().ToLower(), Password = password.Trim() };
             var result = await AuthService.LoginAsync(loginModel);
-
-            if (result != null && result.Status == 200 && result.Data != null)
+            // if condito part  has changed
+            if (result != null && result.Status == 200 && result.Role != null)
             {
-                switch (result.Data.Role)
+                switch (result.Role)
                 {
-                    case "Student":
-                        Nav.NavigateTo("/student/dashboard");
-                        break;
-                    case "Guard":
-                        Nav.NavigateTo("/guard");
-                        break;
-                    case "Guidance":
-                        Nav.NavigateTo("/guidance");
-                        break;
-                    case "Sao":
-                        Nav.NavigateTo("/sao");
-                        break;
-                    default:
-                        Nav.NavigateTo("/");
-                        break;
+                    case "Student": Nav.NavigateTo("/student/dashboard"); break;
+                    case "Guard": Nav.NavigateTo("/guard/dashboard"); break;
+                    case "Guidance": Nav.NavigateTo("/guidance/dashboard"); break;
+                    case "Sao": Nav.NavigateTo("/sao/dashboard"); break;
+                    default: Nav.NavigateTo("/"); break;
                 }
             }
             else

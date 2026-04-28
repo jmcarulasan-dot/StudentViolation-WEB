@@ -1,31 +1,67 @@
-﻿namespace StudentViolationWeb.Model
+﻿namespace StudentViolationWeb.Model;
+
+// ─── Violations / Dashboard ────────────────────────────────────────────────
+// Matches: GET /api/student/violations  →  data: { student_no, name, total_violations,
+//          pending, approved, rejected, warning_level, recommended_action, violations[] }
+
+public class StudentDashboardData
 {
-    public class StudentModel
-    {
-        public int StudentID { get; set; }
-        
-        public string StudentNo { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Gender { get; set; } = string.Empty;
-        public string ContactNumber { get; set; } = string.Empty;
+    public string? student_no { get; set; }
+    public string? name { get; set; }
+    public int total_violations { get; set; }
+    public int pending { get; set; }
+    public int approved { get; set; }
+    public int rejected { get; set; }
+    public string? warning_level { get; set; }
+    public string? recommended_action { get; set; }
+    public List<ViolationItem>? violations { get; set; }
+}
 
-        
-        public DateTime? DateOfBirth { get; set; }
+public class ViolationItem
+{
+    public int id { get; set; }
+    public string? type { get; set; }
+    public string? details { get; set; }
+    public string? severity { get; set; }
+    public DateTime date { get; set; }
+    public string? status { get; set; }
+    public string? recorded_by { get; set; }
+    public string? appeal_text { get; set; }
+    public string? appeal_status { get; set; }
+    public string? appeal_remarks { get; set; }
+}
 
-        
-        public string Address { get; set; } = string.Empty;
-        public string Course { get; set; } = string.Empty;
-        public string Year { get; set; } = string.Empty;
+// ─── Profile ───────────────────────────────────────────────────────────────
+// Matches: GET /api/student/profile  →  data: { student_no, name, email, gender,
+//          course, year, contact_number, address, status, total_violations, warning_level }
 
-        
-        public string? QRCode { get; set; }
+public class StudentProfileData
+{
+    public string? student_no { get; set; }
+    public string? name { get; set; }
+    public string? email { get; set; }
+    public string? gender { get; set; }
+    public string? course { get; set; }
+    public string? year { get; set; }
+    public string? contact_number { get; set; }
+    public string? address { get; set; }
+    public string? status { get; set; }
+    public int total_violations { get; set; }
+    public string? warning_level { get; set; }
+}
 
-        public DateTime? RegistrationDate { get; set; }
+// ─── QR Code ──────────────────────────────────────────────────────────────
+// Matches: GET /api/student/qrcode  →  data: { student_no, name, qr_code }
 
-        public int ViolationCount { get; set; }
+public class StudentQrData
+{
+    public string? student_no { get; set; }
+    public string? name { get; set; }
+    public string? qr_code { get; set; }  // base64 PNG — prefix with data:image/png;base64,
+}
 
-        public string WarningLevel { get; set; } = string.Empty;
-    }
+// ─── Appeal ───────────────────────────────────────────────────────────────
+public class SubmitAppealRequest
+{
+    public string AppealText { get; set; } = string.Empty;
 }
