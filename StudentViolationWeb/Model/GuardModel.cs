@@ -10,6 +10,7 @@ public class GuardStudentData
     public string? year { get; set; }
     public int violation_count { get; set; }
     public string? warning_level { get; set; }
+    public string? profile_photo { get; set; }
     public List<GuardViolationItem>? violations { get; set; }
 }
 
@@ -58,4 +59,5 @@ public class GuardStudentListItem
     public string? name { get; set; }
     public string? course { get; set; }
     public string? year { get; set; }
+    public string? profile_photo { get; set; }
 }

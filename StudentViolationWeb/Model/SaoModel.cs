@@ -56,6 +56,7 @@ public class SaoStudentReport
     public int violation_count { get; set; }
     public string? warning_level { get; set; }
     public string? recommended_action { get; set; }
+    public string? profile_photo { get; set; }
     public List<SaoViolationItem>? violations { get; set; }
 }
 
@@ -73,6 +74,7 @@ public class SaoUserItem
     public string? course { get; set; }
     public string? year { get; set; }
     public string? contact_number { get; set; }
+    public string? profile_photo { get; set; }
     public DateTime? registration_date { get; set; }
 }
 
@@ -113,4 +115,5 @@ public class PendingDismissalItem
     public string? Course { get; set; }
     public string? Year { get; set; }
     public string? Status { get; set; }
+    public string? profilePhoto { get; set; }
 }

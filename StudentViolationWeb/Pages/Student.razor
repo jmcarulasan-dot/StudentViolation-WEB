@@ -1,4 +1,4 @@
-﻿@page "/student"
+﻿@page "/student/dashboard"
 @inject NavigationManager Nav
 @inject HttpClient Http
 @inject AuthService AuthService
@@ -266,13 +266,33 @@
                                         padding:20px; margin-bottom:14px;
                                         display:flex; flex-direction:column; align-items:center;
                                         box-shadow:0 4px 12px rgba(2,136,209,0.08);">
-                        <div style="width:64px; height:64px; border-radius:50%;
-                                            background:#0288D1;
-                                            display:flex; align-items:center; justify-content:center;
-                                            font-size:22px; font-weight:700; color:#FFFFFF;
-                                            box-shadow:0 4px 12px rgba(2,136,209,0.30);
-                                            margin-bottom:10px;">
-                            @(_profile?.name?.Substring(0, 1).ToUpper() ?? "S")
+                        <div style="position:relative; margin-bottom:10px;">
+                            @if (!string.IsNullOrEmpty(_profile?.profile_photo))
+                            {
+                                <img src="data:image/jpeg;base64,@_profile.profile_photo"
+                                     style="width:64px; height:64px; border-radius:50%;
+                                object-fit:cover;
+                                box-shadow:0 4px 12px rgba(2,136,209,0.30);" />
+                            }
+                            else
+                            {
+                                <div style="width:64px; height:64px; border-radius:50%;
+                                background:#0288D1;
+                                display:flex; align-items:center; justify-content:center;
+                                font-size:22px; font-weight:700; color:#FFFFFF;
+                                box-shadow:0 4px 12px rgba(2,136,209,0.30);">
+                                    @(_profile?.name?.Substring(0, 1).ToUpper() ?? "S")
+                                </div>
+                            }
+                            <label style="position:absolute; bottom:0; right:0;
+                          width:22px; height:22px; border-radius:50%;
+                          background:#0288D1; cursor:pointer;
+                          display:flex; align-items:center; justify-content:center;
+                          box-shadow:0 2px 6px rgba(2,136,209,0.40);">
+                                <MudIcon Icon="@Icons.Material.Filled.CameraAlt" Style="color:#FFFFFF; font-size:13px;" />
+                                <InputFile OnChange="OnPhotoSelected" accept="image/*"
+                                           style="display:none;" />
+                            </label>
                         </div>
                         <MudText Style="font-weight:700; font-size:15px; color:#1A237E;">
                             @(_profile?.name ?? "—")
@@ -707,6 +727,50 @@
     };
 
     private void GoBack() => Nav.NavigateTo("/");
+    private bool _isUploadingPhoto = false;
+
+    private async Task OnPhotoSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        if (file.Size > 2_000_000)
+        {
+            Snackbar.Add("Image too large. Max 2MB.", Severity.Warning);
+            return;
+        }
+
+        _isUploadingPhoto = true;
+        StateHasChanged();
+
+        try
+        {
+            using var stream = file.OpenReadStream(2_000_000);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var base64 = Convert.ToBase64String(ms.ToArray());
+
+            var result = await StudentService.UpdateProfilePhotoAsync(base64);
+            if (result.Status == 200)
+            {
+                Snackbar.Add("Profile photo updated!", Severity.Success);
+                await LoadAllDataAsync();
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Failed to update photo.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isUploadingPhoto = false;
+            StateHasChanged();
+        }
+    }
 
     private void Logout() => _showLogoutDialog = true;
 

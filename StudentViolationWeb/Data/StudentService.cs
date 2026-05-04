@@ -71,6 +71,21 @@ public class StudentService
             return new ApiResponse<StudentQrData> { Status = 500, Message = ex.Message };
         }
     }
+    public async Task<ApiResponse<bool>> UpdateProfilePhotoAsync(string base64Photo)
+    {
+        try
+        {
+            await AttachTokenAsync();
+            var result = await _http.PutAsJsonAsync("api/student/profile/photo",
+                new { Base64Photo = base64Photo });
+            return await result.Content.ReadFromJsonAsync<ApiResponse<bool>>()
+                   ?? new ApiResponse<bool> { Status = 500, Message = "Empty response" };
+        }
+        catch (Exception ex)
+        {
+            return new ApiResponse<bool> { Status = 500, Message = ex.Message };
+        }
+    }
 
     // POST /api/student/violations/{id}/appeal
     public async Task<ApiStatusResponse> SubmitAppealAsync(int violationId, SubmitAppealRequest request)

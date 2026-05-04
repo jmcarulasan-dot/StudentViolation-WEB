@@ -13,6 +13,7 @@ public class GuidanceStudentItem
     public int violation_count { get; set; }
     public string? warning_level { get; set; }
     public string? recommended_action { get; set; }
+    public string? profile_photo { get; set; }
 }
 
 // ─── Student Report (GET /api/guidance/students/{studentNo}/report) ──────────

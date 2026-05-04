@@ -48,6 +48,7 @@ public class StudentProfileData
     public string? status { get; set; }
     public int total_violations { get; set; }
     public string? warning_level { get; set; }
+    public string? profile_photo { get; set; }
 }
 
 // ─── QR Code ──────────────────────────────────────────────────────────────
