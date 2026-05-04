@@ -1,10 +1,10 @@
 ﻿@page "/"
 @page "/login"
-@using StudentViolationWeb.Data
 @inject NavigationManager Nav
 @inject AuthService AuthService
 @inject HttpClient Http
 @inject ISnackbar Snackbar
+
 
 
 
@@ -96,8 +96,8 @@
                                Size="Size.Large"
                                Disabled="true"
                                Style="background: #111827; color: #EEEEEE; font-weight: 700;
-                                          font-size: 1rem; border-radius: 8px; padding: 16px;
-                                          text-transform: none; letter-spacing: 0;">
+                                              font-size: 1rem; border-radius: 8px; padding: 16px;
+                                              text-transform: none; letter-spacing: 0;">
                         <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right: 8px;" />
                         Signing In...
                     </MudButton>
@@ -110,8 +110,8 @@
                                Disabled="!isValid"
                                OnClick="HandleLogin"
                                Style="background: #111827; color: #EEEEEE; font-weight: 700;
-                                          font-size: 1rem; border-radius: 8px; padding: 16px;
-                                          text-transform: none; letter-spacing: 0;">
+                                              font-size: 1rem; border-radius: 8px; padding: 16px;
+                                              text-transform: none; letter-spacing: 0;">
                         Sign In
                     </MudButton>
                 }
