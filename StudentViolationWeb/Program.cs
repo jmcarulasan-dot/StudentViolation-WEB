@@ -13,6 +13,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddMudServices();
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<LabPcService>();
 builder.Services.AddScoped<StudentService>();
 builder.Services.AddScoped<GuardService>();
 builder.Services.AddScoped<GuidanceService>();
