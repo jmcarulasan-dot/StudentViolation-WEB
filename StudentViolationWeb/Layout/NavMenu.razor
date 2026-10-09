@@ -1,4 +1,4 @@
-﻿@* @using StudentViolationWeb.Data *@
+﻿@inject ILocalStorageService LocalStorage
 
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -17,6 +17,14 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
+        @if (isLabStaff)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="lab-staff">
+                    <span class="bi bi-pc-display-horizontal" aria-hidden="true"></span> Computer Lab
+                </NavLink>
+            </div>
+        }
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="counter">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
@@ -32,6 +40,13 @@
 
 @code {
     private bool collapseNavMenu = true;
+    private bool isLabStaff;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var role = await LocalStorage.GetItemAsync<string>("authRole");
+        isLabStaff = string.Equals(role, "LabStaff", StringComparison.Ordinal);
+    }
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
