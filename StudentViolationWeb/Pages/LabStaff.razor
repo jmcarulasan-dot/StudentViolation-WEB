@@ -1,5 +1,6 @@
 @page "/lab-staff"
 @inject LabPcService LabPcService
+@inject IDialogService DialogService
 @inject ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -224,7 +225,6 @@
 
     async Task<bool> Confirm(string message)
     {
-        var parameters = new DialogParameters { ["ContentText"] = message, ["ButtonText"] = "Confirm", ["Color"] = Color.Error };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
         var dialog = await DialogService.ShowMessageBox("Please confirm", message, yesText: "Confirm", cancelText: "Cancel", options: options);
         return dialog == true;
