@@ -77,6 +77,30 @@
                               Style="color: #EEEEEE;"
                               InputStyle="color: default;" />
 
+                @if (showRecoveryCodes)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mb-4">
+                        Save these recovery codes now. Each can be used once.
+                        <MudText Typo="Typo.body2">@string.Join("   ", loginFlow?.RecoveryCodes ?? new List<string>())</MudText>
+                    </MudAlert>
+                }
+                else if (loginFlow?.ChallengeId is not null)
+                {
+                    @if (loginFlow.NextStep == "setupAuthenticator" && !string.IsNullOrWhiteSpace(loginFlow.QrCodeDataUri))
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mb-4">
+                            Scan this code with your authenticator app.
+                            <img src="@loginFlow.QrCodeDataUri" alt="Authenticator setup QR code" style="display:block;width:190px;height:190px;margin:12px auto;background:white;padding:8px" />
+                            @if (!string.IsNullOrWhiteSpace(loginFlow.ManualEntryKey))
+                            {
+                                <div>Manual setup key: <b>@loginFlow.ManualEntryKey</b></div>
+                            }
+                        </MudAlert>
+                    }
+                    <MudTextField T="string" @bind-Value="authCode" Label="Authenticator or recovery code"
+                                  Required="true" Variant="Variant.Outlined" Class="mb-4" />
+                }
+
                 <MudStack Row="true" Justify="Justify.SpaceBetween"
                           AlignItems="AlignItems.Center" Class="mb-6">
                     <MudCheckBox T="bool" @bind-Checked="rememberMe"
@@ -108,11 +132,11 @@
                                FullWidth="true"
                                Size="Size.Large"
                                Disabled="!isValid"
-                               OnClick="HandleLogin"
+                               OnClick="HandleContinue"
                                Style="background: #111827; color: #EEEEEE; font-weight: 700;
                                               font-size: 1rem; border-radius: 8px; padding: 16px;
                                               text-transform: none; letter-spacing: 0;">
-                        Sign In
+                        @(showRecoveryCodes ? "Continue" : loginFlow?.ChallengeId is not null ? "Verify code" : "Sign In")
                     </MudButton>
                 }
 
@@ -139,8 +163,11 @@
     bool isValid;
     bool isLoading;
     bool rememberMe;
+    bool showRecoveryCodes;
     public string username = "";
     public string password = "";
+    string authCode = "";
+    LoginFlow? loginFlow;
 
     InputType pwdType = InputType.Password;
     string pwdIcon = Icons.Material.Filled.VisibilityOff;
@@ -159,41 +186,85 @@
         }
     }
 
+    async Task HandleContinue()
+    {
+        if (showRecoveryCodes)
+        {
+            NavigateByRole(loginFlow?.Role);
+            return;
+        }
+        if (loginFlow?.ChallengeId is not null)
+        {
+            await VerifyMfa();
+            return;
+        }
+        await HandleLogin();
+    }
+
     async Task HandleLogin()
     {
         await form.Validate();
         if (!isValid) return;
-
         isLoading = true;
-
         try
         {
-            var loginModel = new LoginModel { Username = username.Trim().ToLower(), Password = password.Trim() };
-            var result = await AuthService.LoginAsync(loginModel);
-            // if condito part  has changed
-            if (result != null && result.Status == 200 && result.Role != null)
+            var result = await AuthService.LoginAsync(new LoginModel
             {
-                switch (result.Role)
-                {
-                    case "Student": Nav.NavigateTo("/student/dashboard"); break;
-                    case "Guard": Nav.NavigateTo("/guard/dashboard"); break;
-                    case "Guidance": Nav.NavigateTo("/guidance/dashboard"); break;
-                    case "Sao": Nav.NavigateTo("/sao/dashboard"); break;
-                    default: Nav.NavigateTo("/"); break;
-                }
+                Username = username.Trim().ToLowerInvariant(),
+                Password = password
+            });
+            if (result.Status == 200 && result.Data?.ChallengeId is not null)
+            {
+                loginFlow = result.Data;
+                authCode = "";
             }
             else
             {
-                Snackbar.Add(result?.Message ?? "Invalid username or password.", Severity.Error);
+                Snackbar.Add(result.Message ?? "Sign-in could not start.", Severity.Error);
             }
         }
-        catch (Exception ex)
+        finally { isLoading = false; }
+    }
+
+    async Task VerifyMfa()
+    {
+        if (string.IsNullOrWhiteSpace(authCode) || loginFlow?.ChallengeId is null)
         {
-            Snackbar.Add($"Connection error: {ex.Message}", Severity.Error);
+            Snackbar.Add("Enter the current authenticator or recovery code.", Severity.Warning);
+            return;
         }
-        finally
+        isLoading = true;
+        try
         {
-            isLoading = false;
+            var result = await AuthService.VerifyAuthenticatorAsync(new AuthenticatorVerifyRequest
+            {
+                ChallengeId = loginFlow.ChallengeId,
+                Code = authCode.Trim()
+            });
+            if (result.Status == 200 && !string.IsNullOrWhiteSpace(result.Data?.Token))
+            {
+                loginFlow = result.Data;
+                if (result.Data.RecoveryCodes?.Count > 0) showRecoveryCodes = true;
+                else NavigateByRole(result.Data.Role);
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Authenticator verification failed.", Severity.Error);
+            }
+        }
+        finally { isLoading = false; }
+    }
+
+    void NavigateByRole(string? role)
+    {
+        switch (role)
+        {
+            case "Student": Nav.NavigateTo("/student/dashboard"); break;
+            case "Guard": Nav.NavigateTo("/guard/dashboard"); break;
+            case "SAO": Nav.NavigateTo("/sao/dashboard"); break;
+            case "LabStaff": Nav.NavigateTo("/lab-staff"); break;
+            case "Admission": Nav.NavigateTo("/admission/dashboard"); break;
+            default: Snackbar.Add("This account does not have a web dashboard.", Severity.Warning); break;
         }
     }
 }
