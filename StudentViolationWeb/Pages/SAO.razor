@@ -2,9 +2,10 @@
 @inject NavigationManager Nav
 @inject AuthService AuthService
 @inject SaoService SaoService
+@inject SaoOperationsService SaoOperationsService
 @inject ISnackbar Snackbar
 
-<PageTitle>SAO Admin Dashboard</PageTitle>
+<PageTitle>SAO Dashboard</PageTitle>
 
 <MudLayout>
 
@@ -575,6 +576,84 @@
                 }
             }
 
+            @if (_activeTab == 5)
+            {
+                <MudPaper Class="pa-5 mb-4" Elevation="0" Style="background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
+                    <MudText Typo="Typo.h5" Style="font-weight:750;color:#17243a;">Student case review</MudText>
+                    <MudText Typo="Typo.body2" Style="color:#718096;margin-bottom:18px;">Review a student's violation history and apply the action recommended by the backend.</MudText>
+                    <div style="display:flex;gap:10px;max-width:680px;flex-wrap:wrap;align-items:center;">
+                        <MudTextField @bind-Value="_studentLookupNo" Label="Student number" Variant="Variant.Outlined" Margin="Margin.Dense" Style="flex:1;min-width:230px;" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoadingStudent" OnClick="LoadStudentCase" StartIcon="@Icons.Material.Filled.Search">Find student</MudButton>
+                    </div>
+                </MudPaper>
+                @if (_isLoadingStudent) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                else if (_studentReport is not null)
+                {
+                    <MudGrid Spacing="3" Class="mb-4">
+                        <MudItem xs="12" md="8">
+                            <MudPaper Class="pa-5" Elevation="0" Style="height:100%;background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
+                                <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">
+                                    <div><MudText Typo="Typo.h5" Style="font-weight:750;">@_studentReport.name</MudText><MudText Typo="Typo.body2" Style="color:#718096;">@_studentReport.student_no · @_studentReport.course · Year @_studentReport.year</MudText></div>
+                                    <MudChip T="string" Color="@LevelColor(_studentLevel?.ViolationLevel)" Variant="Variant.Filled">@(_studentLevel?.ViolationLevel ?? "Unknown")</MudChip>
+                                </div>
+                                <MudDivider Class="my-4" />
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12" sm="4"><MudText Typo="Typo.caption" Style="color:#718096;">ACTIVE VIOLATIONS</MudText><MudText Typo="Typo.h5" Style="font-weight:750;">@(_studentLevel?.ActiveViolations ?? _studentReport.violation_count)</MudText></MudItem>
+                                    <MudItem xs="12" sm="4"><MudText Typo="Typo.caption" Style="color:#718096;">RECOMMENDED ACTION</MudText><MudText Typo="Typo.subtitle1" Style="font-weight:700;">@(_studentLevel?.RecommendedAction ?? _studentReport.recommended_action)</MudText></MudItem>
+                                    <MudItem xs="12" sm="4"><MudText Typo="Typo.caption" Style="color:#718096;">CONTACT</MudText><MudText Typo="Typo.body2">@_studentReport.email</MudText></MudItem>
+                                </MudGrid>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:700;margin-top:22px;margin-bottom:8px;">Violation history</MudText>
+                                @if (_studentReport.violations?.Any() == true)
+                                {
+                                    <MudTable Items="_studentReport.violations" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm">
+                                        <HeaderContent><MudTh>Date</MudTh><MudTh>Violation</MudTh><MudTh>Severity</MudTh><MudTh>Status</MudTh></HeaderContent>
+                                        <RowTemplate><MudTd DataLabel="Date">@context.date.ToString("MMM d, yyyy")</MudTd><MudTd DataLabel="Violation"><b>@context.type</b><div><small>@context.details</small></div></MudTd><MudTd DataLabel="Severity">@context.severity</MudTd><MudTd DataLabel="Status">@context.status</MudTd></RowTemplate>
+                                    </MudTable>
+                                }
+                                else { <MudText Typo="Typo.body2" Style="color:#718096;">No violation records found.</MudText> }
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudPaper Class="pa-5" Elevation="0" Style="height:100%;background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
+                                <MudText Typo="Typo.h6" Style="font-weight:750;">Available actions</MudText>
+                                <MudText Typo="Typo.body2" Style="color:#718096;margin-bottom:18px;">Actions are enabled only when the student's active violation count meets the backend rule.</MudText>
+                                <MudButton FullWidth="true" Class="mb-2" Variant="Variant.Outlined" Color="Color.Warning" Disabled="@(_studentLevel?.ActiveViolations != 1 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("warn"))">Issue warning · 1 active violation</MudButton>
+                                <MudButton FullWidth="true" Class="mb-2" Variant="Variant.Outlined" Color="Color.Warning" Disabled="@(_studentLevel?.ActiveViolations != 2 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("counsel"))">Assign counseling · 2 active violations</MudButton>
+                                <MudButton FullWidth="true" Variant="Variant.Outlined" Color="Color.Error" Disabled="@((_studentLevel?.ActiveViolations ?? 0) < 3 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("recommend-dismiss"))">Recommend dismissal · 3+ active violations</MudButton>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                }
+            }
+            @if (_activeTab == 6)
+            {
+                <MudPaper Class="pa-5" Elevation="0" Style="background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+                        <div><MudText Typo="Typo.h5" Style="font-weight:750;color:#17243a;">Audit history</MudText><MudText Typo="Typo.body2" Style="color:#718096;">Recent recorded actions, optionally filtered by student number.</MudText></div>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <MudTextField @bind-Value="_auditStudentNo" Label="Student number (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoadingAudit" OnClick="LoadAuditHistory" StartIcon="@Icons.Material.Filled.Search">Search</MudButton>
+                        </div>
+                    </div>
+                    @if (_isLoadingAudit) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                    else if (_auditEntries?.Any() == true)
+                    {
+                        <MudTable Items="_auditEntries" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="15">
+                            <HeaderContent><MudTh>When</MudTh><MudTh>Action</MudTh><MudTh>Student</MudTh><MudTh>Changed by</MudTh><MudTh>Details</MudTh></HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="When">@context.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</MudTd>
+                                <MudTd DataLabel="Action"><b>@context.Action</b></MudTd>
+                                <MudTd DataLabel="Student">@(context.StudentNo ?? "—")</MudTd>
+                                <MudTd DataLabel="Changed by">@context.ActorUsername <small>(@context.ActorRole)</small></MudTd>
+                                <MudTd DataLabel="Details">@(context.Remarks ?? $"{context.PreviousValue ?? "—"} → {context.NewValue ?? "—"}")</MudTd>
+                            </RowTemplate>
+                            <PagerContent><MudTablePager /></PagerContent>
+                        </MudTable>
+                    }
+                    else { <div style="padding:48px;text-align:center;color:#718096;">No audit records found for this search.</div> }
+                </MudPaper>
+            }
+
         </div>
     </MudMainContent>
 
@@ -583,7 +662,7 @@
                 background:rgba(255,255,255,0.97); backdrop-filter:blur(24px);
                 border-top:1px solid #E1F5FE;
                 box-shadow:0 -4px 20px rgba(2,136,209,0.08);
-                height:68px; display:flex; align-items:center; padding:0 4px;">
+                height:68px; display:flex; align-items:center; padding:0 4px; overflow-x:auto;">
 
         <button @onclick="() => SwitchTab(0)" style="@NavBtn(0)">
             <MudIcon Icon="@Icons.Material.Filled.Dashboard" Style="@NavIcon(0)" />
@@ -604,6 +683,14 @@
         <button @onclick="() => SwitchTab(4)" style="@NavBtn(4)">
             <MudIcon Icon="@Icons.Material.Filled.PersonRemove" Style="@NavIcon(4)" />
             <span style="@NavLabel(4)">Dismiss</span>
+        </button>
+        <button @onclick="() => SwitchTab(5)" style="@NavBtn(5)">
+            <MudIcon Icon="@Icons.Material.Filled.PersonSearch" Style="@NavIcon(5)" />
+            <span style="@NavLabel(5)">Students</span>
+        </button>
+        <button @onclick="() => SwitchTab(6)" style="@NavBtn(6)">
+            <MudIcon Icon="@Icons.Material.Filled.History" Style="@NavIcon(6)" />
+            <span style="@NavLabel(6)">Audit</span>
         </button>
 
     </div>
@@ -862,6 +949,14 @@
     private Func<Task>? _deleteAction;
 
     private bool _showLogoutDialog = false;
+    private string _studentLookupNo = string.Empty;
+    private string _auditStudentNo = string.Empty;
+    private SaoStudentReport? _studentReport;
+    private SaoViolationLevelResponse? _studentLevel;
+    private List<SaoAuditEntry>? _auditEntries;
+    private bool _isLoadingStudent;
+    private bool _isLoadingAudit;
+    private bool _studentActionBusy;
 
     protected override async Task OnInitializedAsync()
     {
@@ -880,6 +975,7 @@
             await LoadDismissalsAsync();
             await LoadDismissedStudentsAsync();
         }
+        if (idx == 6) await LoadAuditHistory();
     }
 
     private async Task LoadSummaryAsync()
@@ -1095,6 +1191,62 @@
         }
         else Snackbar.Add(result.Message ?? "Failed.", Severity.Error);
     }
+
+
+    private async Task LoadStudentCase()
+    {
+        if (string.IsNullOrWhiteSpace(_studentLookupNo))
+        {
+            Snackbar.Add("Enter a student number first.", Severity.Warning);
+            return;
+        }
+        _isLoadingStudent = true;
+        _studentReport = null;
+        var number = _studentLookupNo.Trim();
+        var reportTask = SaoOperationsService.GetStudentReportAsync(number);
+        var levelTask = SaoOperationsService.GetViolationLevelAsync(number);
+        await Task.WhenAll(reportTask, levelTask);
+        var report = await reportTask;
+        _studentLevel = await levelTask;
+        _isLoadingStudent = false;
+        if (report.Status == 200) _studentReport = report.Data;
+        else Snackbar.Add(report.Message ?? "Student record could not be loaded.", Severity.Error);
+    }
+
+    private async Task LoadAuditHistory()
+    {
+        _isLoadingAudit = true;
+        var result = await SaoOperationsService.GetAuditAsync(_auditStudentNo);
+        _auditEntries = result.Data ?? new List<SaoAuditEntry>();
+        _isLoadingAudit = false;
+        if (result.Status >= 400) Snackbar.Add(result.Message ?? "Audit history could not be loaded.", Severity.Error);
+    }
+
+    private async Task ApplyStudentAction(string action)
+    {
+        if (_studentReport is null || string.IsNullOrWhiteSpace(_studentReport.student_no)) return;
+        _studentActionBusy = true;
+        var number = _studentReport.student_no;
+        var result = action switch
+        {
+            "warn" => await SaoOperationsService.WarnStudentAsync(number),
+            "counsel" => await SaoOperationsService.CounselStudentAsync(number),
+            _ => await SaoOperationsService.RecommendDismissalAsync(number)
+        };
+        _studentActionBusy = false;
+        Snackbar.Add(result.Message ?? (result.Status == 200 ? "Student action saved." : "Student action could not be saved."),
+            result.Status == 200 ? Severity.Success : Severity.Error);
+        if (result.Status == 200) await LoadStudentCase();
+    }
+
+    private Color LevelColor(string? level) => level?.ToLowerInvariant() switch
+    {
+        "green" => Color.Success,
+        "yellow" => Color.Warning,
+        "orange" => Color.Warning,
+        "red" => Color.Error,
+        _ => Color.Default
+    };
 
     private void Logout() => _showLogoutDialog = true;
 
