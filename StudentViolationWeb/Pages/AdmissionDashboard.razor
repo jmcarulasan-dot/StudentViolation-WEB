@@ -136,15 +136,17 @@
                         <MudPaper Class="content-card form-card" Elevation="0">
                             <MudText Typo="Typo.h6">Create enrollment</MudText>
                             <MudText Typo="Typo.body2" Class="mb-4">Add a student record to the enrollment list.</MudText>
-                            <MudTextField @bind-Value="_form.StudentNo" Label="Student number" Placeholder="ABC-00-0000-ABC123" Variant="Variant.Outlined" Required="true" />
-                            <MudTextField @bind-Value="_form.FirstName" Label="First name" Variant="Variant.Outlined" Required="true" />
-                            <MudTextField @bind-Value="_form.LastName" Label="Last name" Variant="Variant.Outlined" Required="true" />
-                            <MudTextField @bind-Value="_form.Email" Label="Email" Variant="Variant.Outlined" Required="true" />
-                            <MudTextField @bind-Value="_form.Course" Label="Course" Variant="Variant.Outlined" Required="true" />
-                            <MudTextField @bind-Value="_form.Year" Label="Year level" Variant="Variant.Outlined" Required="true" />
-                            <MudButton FullWidth="true" Class="mt-2" Variant="Variant.Filled" Color="Color.Primary" Disabled="@_busy" OnClick="CreateEnrollment">
-                                @if (_busy) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> } Save enrollment
-                            </MudButton>
+                            <MudGrid Spacing="2" Class="form-grid">
+                                <MudItem xs="12"><MudTextField @bind-Value="_form.StudentNo" Label="Student number" Placeholder="ABC-00-0000-ABC123" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" /></MudItem>
+                                <MudItem xs="12" sm="6"><MudTextField @bind-Value="_form.FirstName" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" /></MudItem>
+                                <MudItem xs="12" sm="6"><MudTextField @bind-Value="_form.LastName" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" /></MudItem>
+                                <MudItem xs="12"><MudTextField @bind-Value="_form.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" /></MudItem>
+                                <MudItem xs="12" sm="7"><MudTextField @bind-Value="_form.Course" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" /></MudItem>
+                                <MudItem xs="12" sm="5"><MudTextField @bind-Value="_form.Year" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" /></MudItem>
+                                <MudItem xs="12"><MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary" Disabled="@_busy" OnClick="CreateEnrollment">
+                                    @if (_busy) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> } Save enrollment
+                                </MudButton></MudItem>
+                            </MudGrid>
                         </MudPaper>
                     </MudItem>
                     <MudItem xs="12" lg="8">
@@ -216,22 +218,22 @@
     .admission-nav .mud-nav-link.active { color:#294bd0; background:#eef2ff; }
     .drawer-note { display:flex; gap:10px; align-items:flex-start; padding:18px; margin:12px; border-radius:12px; background:#f4f6fa; color:#758094; font-size:.78rem; }
     .drawer-note .mud-icon-root { color:#3859d8; flex-shrink:0; }
-    .admission-main { padding:30px 34px; }
-    .page-wrap { max-width:1440px; margin:auto; }
-    .page-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:26px; }
+    .admission-main { padding:22px 26px; }
+    .page-wrap { width:100%; max-width:none; margin:0; }
+    .page-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
     .eyebrow { color:#3859d8; font-weight:800; letter-spacing:.12em; }
     .page-title { font-weight:800; letter-spacing:-.04em; margin:3px 0; }
     .page-subtitle { color:#758094; }
-    .metric-card,.content-card { background:#fff; border:1px solid #e6eaf0; border-radius:16px; padding:22px; }
-    .metric-card { display:flex; align-items:center; gap:16px; min-height:126px; }
-    .metric-icon { padding:12px; border-radius:12px; width:52px; height:52px; }
+    .metric-card,.content-card { background:#fff; border:1px solid #e6eaf0; border-radius:14px; padding:18px; }
+    .metric-card { display:flex; align-items:center; gap:14px; min-height:94px; }
+    .metric-icon { padding:10px; border-radius:11px; width:46px; height:46px; }
     .metric-icon.purple { color:#7047c8; background:#f2edff; }
     .metric-icon.blue { color:#315ddc; background:#edf2ff; }
     .metric-icon.green { color:#168358; background:#e8f7ef; }
     .metric-label { color:#758094; font-size:.86rem; }
     .metric-number { font-weight:800; }
     .metric-action { font-weight:700; margin-top:5px; }
-    .card-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+    .card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
     .card-head h6 { font-weight:750; }
     .card-head p { color:#758094; }
     .request-row { display:flex; align-items:center; gap:14px; padding:12px 0; border-top:1px solid #edf0f4; }
@@ -241,22 +243,22 @@
     .quick-card { display:flex; flex-direction:column; gap:12px; }
     .quick-card h6 { font-weight:750; }
     .quick-card p { color:#758094; }
-    .form-card { display:flex; flex-direction:column; gap:8px; }
+    .form-card { display:block; }\n    .form-grid { margin-top:8px; }
     .form-card h6 { font-weight:750; }
     .form-card p { color:#758094; }
     .search-box { max-width:280px; }
     .action-group { display:flex; flex-wrap:wrap; gap:4px; }
     .empty-state { text-align:center; padding:30px; color:#758094; }
-    .empty-panel { min-height:170px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#8791a1; }
+    .empty-panel { min-height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#8791a1; }
     .empty-panel .mud-icon-root { font-size:34px; color:#adb6c4; }
-    .clearance-card { max-width:760px; }
+    .clearance-card { max-width:none; }
     .clearance-card h6 { font-weight:750; margin-top:8px; }
     .clearance-card .mud-input-control { margin-bottom:10px; }
     .clearance-icon { color:#3859d8; background:#eef2ff; border-radius:12px; padding:9px; width:46px; height:46px; }
     .guidance-card { background:#eef2ff; border-color:#dbe3ff; color:#36446a; }
     .guidance-card h6 { font-weight:750; margin-bottom:8px; }
-    @@media (max-width: 960px) { .admission-main { padding:22px 18px; } .page-heading { align-items:flex-start; flex-direction:column; } }
-    @@media (max-width: 600px) { .admission-main { padding:18px 12px; } .content-card { padding:16px; } .card-head { align-items:flex-start; flex-direction:column; } .search-box { max-width:none; width:100%; } }
+    @@media (max-width: 960px) { .admission-main { padding:18px 16px; } .page-heading { align-items:flex-start; flex-direction:column; } }
+    @@media (max-width: 600px) { .admission-main { padding:14px 10px; } .content-card { padding:14px; } .card-head { align-items:flex-start; flex-direction:column; } .search-box { max-width:none; width:100%; } }
 </style>
 
 @code {
