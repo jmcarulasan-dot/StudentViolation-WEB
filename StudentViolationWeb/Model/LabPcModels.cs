@@ -40,6 +40,21 @@ namespace StudentViolationWeb.Model
         public string Status { get; set; } = "";
     }
 
+    public sealed class CreateLabStaffRequest
+    {
+        public string Username { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+    }
+
+    public sealed class LabStaffCreated
+    {
+        public string Username { get; set; } = "";
+        public string InitialPassword { get; set; } = "";
+        public string Role { get; set; } = "";
+    }
+
     public sealed class LabPcApiEnvelope<T>
     {
         public int Status { get; set; }
