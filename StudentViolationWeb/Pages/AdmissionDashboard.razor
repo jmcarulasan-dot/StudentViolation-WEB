@@ -280,11 +280,15 @@
     private async Task LoadAll()
     {
         _pageError = null;
-        var results = await Task.WhenAll(AdmissionService.GetRegistrationRequestsAsync(), AdmissionService.GetEnrollmentsAsync());
-        _requests = results[0].Data ?? new();
-        _enrollments = results[1].Data ?? new();
-        if (results[0].Status >= 400) _pageError = results[0].Message;
-        else if (results[1].Status >= 400) _pageError = results[1].Message;
+        var requestsTask = AdmissionService.GetRegistrationRequestsAsync();
+        var enrollmentsTask = AdmissionService.GetEnrollmentsAsync();
+        await Task.WhenAll(requestsTask, enrollmentsTask);
+        var requests = await requestsTask;
+        var enrollments = await enrollmentsTask;
+        _requests = requests.Data ?? new();
+        _enrollments = enrollments.Data ?? new();
+        if (requests.Status >= 400) _pageError = requests.Message;
+        else if (enrollments.Status >= 400) _pageError = enrollments.Message;
     }
 
     private async Task SelectSection(string section)
