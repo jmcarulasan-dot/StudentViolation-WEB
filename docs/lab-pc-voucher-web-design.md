@@ -20,7 +20,7 @@ Raw enrollment and voucher codes must not be shown again after the initial respo
 
 ## Navigation and authorization
 
-Add a Lab Staff route and role-aware navigation only after the API recognizes the explicit `LabStaff` role. Directly visiting the route must show access denied for any other role. The API remains the authority; hiding a menu item is not authorization. LabStaff receives no SAO or Admissions access. Existing areas remain separate.
+SAO has a separate account-provisioning page that creates LabStaff accounts with a temporary password shown once; it does not grant those accounts SAO or Admissions access. Add a Lab Staff route and role-aware navigation only after the API recognizes the explicit `LabStaff` role. Directly visiting the route must show access denied for any other role. The API remains the authority; hiding a menu item is not authorization. LabStaff receives no SAO or Admissions access. Existing areas remain separate.
 
 ## API integration
 
