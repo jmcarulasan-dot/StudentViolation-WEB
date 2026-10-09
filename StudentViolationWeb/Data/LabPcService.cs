@@ -12,7 +12,7 @@ namespace StudentViolationWeb.Data
         public Task<List<LabPcVoucher>> GetVouchers(string? studentNo = null)
         {
             var query = string.IsNullOrWhiteSpace(studentNo) ? "" : $"?studentNo={Uri.EscapeDataString(studentNo)}";
-            return GetList<LabPcVoucher>("api/labpc/vouchers{query}");
+            return GetList<LabPcVoucher>($"api/labpc/vouchers{query}");
         }
         public Task<List<LabPcSession>> GetSessions(string status = "Active") =>
             GetList<LabPcSession>($"api/labpc/sessions?status={Uri.EscapeDataString(status)}");
