@@ -1,0 +1,64 @@
+@page "/sao/labstaff-accounts"
+@inject LabStaffAccountService Accounts
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Lab Staff Accounts · SVS</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-6">
+    <MudText Typo="Typo.h4" Class="mb-2">Lab Staff accounts</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">Create a separate Lab Staff sign-in. Lab Staff manages PCs and vouchers; this does not grant SAO or Admissions permissions.</MudText>
+    @if (!authorized)
+    {
+        <MudAlert Severity="Severity.Error">Only SAO can provision Lab Staff accounts.</MudAlert>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(error)) { <MudAlert Severity="Severity.Error" Class="mb-4">@error</MudAlert> }
+        @if (created is not null)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                <b>Temporary password — show it to the new staff member once:</b>
+                <MudTextField Value="@created.InitialPassword" ReadOnly="true" Variant="Variant.Outlined" />
+                The new account must set up an authenticator on its first sign-in. This password will not be shown again.
+                <MudButton Color="Color.Inherit" OnClick="() => created = null">Dismiss</MudButton>
+            </MudAlert>
+        }
+        <MudPaper Class="pa-5" Elevation="1">
+            <MudTextField @bind-Value="request.Username" Label="Username" Required="true" />
+            <MudTextField @bind-Value="request.Email" Label="Email" Required="true" InputType="InputType.Email" />
+            <MudTextField @bind-Value="request.FirstName" Label="First name" Required="true" />
+            <MudTextField @bind-Value="request.LastName" Label="Last name" Required="true" />
+            <MudButton OnClick="CreateAccount" Disabled="busy" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4">
+                @(busy ? "Creating..." : "Create Lab Staff account")
+            </MudButton>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    bool authorized;
+    bool busy;
+    string? error;
+    LabStaffCreated? created;
+    CreateLabStaffRequest request = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var role = await LocalStorage.GetItemAsync<string>("authRole");
+        authorized = string.Equals(role, "SAO", StringComparison.Ordinal);
+        if (!authorized) Navigation.NavigateTo("/");
+    }
+
+    async Task CreateAccount()
+    {
+        busy = true; error = null; created = null;
+        try
+        {
+            created = await Accounts.Create(request);
+            request = new();
+        }
+        catch (Exception ex) { error = ex.Message; }
+        finally { busy = false; }
+    }
+}
