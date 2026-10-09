@@ -921,6 +921,13 @@
             gap:3px !important; padding:5px 4px !important; height:56px; text-align:center !important;
         }
     }
+
+    .sao-main-content > div { max-width:none !important; padding:22px 28px 18px !important; }
+    .sao-main-content div[style*="padding:48px"] { padding:22px !important; }
+    .sao-main-content div[style*="padding:40px"] { padding:18px !important; }
+    @@media (max-width:820px) {
+        .sao-main-content > div { padding:16px 12px !important; }
+    }
 </style>
 
 @code {
