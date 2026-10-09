@@ -1,5 +1,6 @@
 @page "/sao/labstaff-accounts"
 @inject LabStaffAccountService Accounts
+@inject AuthService AuthService
 @inject ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
 
@@ -45,6 +46,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await AuthService.InitializeAsync();
         var role = await LocalStorage.GetItemAsync<string>("authRole");
         authorized = string.Equals(role, "SAO", StringComparison.Ordinal);
         if (!authorized) Navigation.NavigateTo("/");
