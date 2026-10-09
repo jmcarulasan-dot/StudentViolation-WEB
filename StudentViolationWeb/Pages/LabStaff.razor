@@ -31,7 +31,7 @@
         }
         @if (enrollmentCode is not null)
         {
-            <MudAlert Severity="Severity.Warning" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="() => enrollmentCode = null">
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
                 <b>Show this one-time PC enrollment code to the lab technician now:</b>
                 <MudTextField Value="@enrollmentCode" ReadOnly="true" Variant="Variant.Outlined" />
                 It will not be displayed again.
@@ -39,7 +39,7 @@
         }
         @if (voucherCode is not null)
         {
-            <MudAlert Severity="Severity.Success" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="() => voucherCode = null">
+            <MudAlert Severity="Severity.Success" Class="mb-4">
                 <b>One-time student voucher</b>
                 <MudTextField Value="@voucherCode" ReadOnly="true" Variant="Variant.Outlined" />
                 Share it with the selected student through the school-approved channel. It is not stored for later viewing.
