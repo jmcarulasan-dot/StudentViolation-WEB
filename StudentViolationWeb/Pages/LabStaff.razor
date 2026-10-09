@@ -1,5 +1,6 @@
 @page "/lab-staff"
 @inject LabPcService LabPcService
+@inject AuthService AuthService
 @inject IDialogService DialogService
 @inject ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
@@ -142,6 +143,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await AuthService.InitializeAsync();
         var role = await LocalStorage.GetItemAsync<string>("authRole");
         authorized = string.Equals(role, "LabStaff", StringComparison.Ordinal);
         if (authorized) await Refresh();
