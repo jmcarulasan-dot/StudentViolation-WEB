@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace StudentViolationWeb.Model
 {
     public sealed class LabPcComputer
@@ -8,6 +10,7 @@ namespace StudentViolationWeb.Model
         public bool Enabled { get; set; }
         public DateTime? LastHeartbeatUtc { get; set; }
         public bool IsOnline { get; set; }
+        [JsonPropertyName("secret")]
         public string? EnrollmentCode { get; set; }
     }
 
