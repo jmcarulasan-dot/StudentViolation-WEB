@@ -12,6 +12,7 @@
     <MudStack Spacing="1" Class="mb-5">
         <MudText Typo="Typo.h4">Computer Lab</MudText>
         <MudText Typo="Typo.body1" Color="Color.Secondary">Manage lab PCs, issue student vouchers, and monitor timed sessions.</MudText>
+        <MudButton OnClick="Logout" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Logout" Class="align-self-start">Sign out</MudButton>
     </MudStack>
 
     @if (loading)
@@ -148,6 +149,12 @@
         authorized = string.Equals(role, "LabStaff", StringComparison.Ordinal);
         if (authorized) await Refresh();
         loading = false;
+    }
+
+    async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 
     async Task Refresh()
