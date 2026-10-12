@@ -765,6 +765,12 @@
         Nav.NavigateTo("/login");
     }
 
+    private async Task RefreshDismissals()
+    {
+        await LoadDismissalsAsync();
+        await LoadDismissedStudentsAsync();
+    }
+
     private async Task LoadDismissedStudentsAsync()
     {
         _isLoadingDismissed = true;
