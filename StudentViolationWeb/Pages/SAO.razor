@@ -1,4 +1,4 @@
-﻿@page "/sao/dashboard"
+@page "/sao/dashboard"
 @inject NavigationManager Nav
 @inject AuthService AuthService
 @inject SaoService SaoService
@@ -7,926 +7,403 @@
 
 <PageTitle>SAO Dashboard</PageTitle>
 
-<MudLayout>
+<MudLayout Class="sao-app">
+    <aside class="sao-sidebar">
+        <div class="brand-lockup">
+            <div class="brand-symbol"><MudIcon Icon="@Icons.Material.Filled.Shield" /></div>
+            <div><strong>SVS</strong><span>STUDENT VIOLATION SYSTEM</span></div>
+        </div>
+        <div class="workspace-label">WORKSPACE</div>
+        <nav class="side-nav" aria-label="SAO navigation">
+            <button @onclick="() => SwitchTab(0)" style="@NavBtn(0)"><MudIcon Icon="@Icons.Material.Filled.Dashboard" Style="@NavIcon(0)" /><span style="@NavLabel(0)">Overview</span></button>
+            <button @onclick="() => SwitchTab(1)" style="@NavBtn(1)"><MudIcon Icon="@Icons.Material.Filled.ReportProblem" Style="@NavIcon(1)" /><span style="@NavLabel(1)">Violations</span></button>
+            <button @onclick="() => SwitchTab(2)" style="@NavBtn(2)"><MudIcon Icon="@Icons.Material.Filled.Gavel" Style="@NavIcon(2)" /><span style="@NavLabel(2)">Appeals</span></button>
+            <button @onclick="() => SwitchTab(3)" style="@NavBtn(3)"><MudIcon Icon="@Icons.Material.Filled.PeopleAlt" Style="@NavIcon(3)" /><span style="@NavLabel(3)">Accounts</span></button>
+            <button @onclick="() => SwitchTab(4)" style="@NavBtn(4)"><MudIcon Icon="@Icons.Material.Filled.PersonRemove" Style="@NavIcon(4)" /><span style="@NavLabel(4)">Dismissals</span></button>
+            <button @onclick="() => SwitchTab(5)" style="@NavBtn(5)"><MudIcon Icon="@Icons.Material.Filled.ManageSearch" Style="@NavIcon(5)" /><span style="@NavLabel(5)">Student cases</span></button>
+            <button @onclick="() => SwitchTab(6)" style="@NavBtn(6)"><MudIcon Icon="@Icons.Material.Filled.History" Style="@NavIcon(6)" /><span style="@NavLabel(6)">Audit history</span></button>
+        </nav>
+        <div class="sidebar-foot">
+            <div class="user-avatar">SA</div>
+            <div class="user-identity"><strong>SAO Office</strong><span>Administrator</span></div>
+            <MudIconButton Icon="@Icons.Material.Filled.Logout" title="Sign out" Class="sidebar-logout" OnClick="Logout" />
+        </div>
+    </aside>
 
-    @* ── Top Bar ── *@
-    <MudAppBar Elevation="0"
-               Style="background:rgba(255,255,255,0.95);
-                      backdrop-filter:blur(20px);
-                      border-bottom:1px solid #E1F5FE;">
-        <MudSpacer />
-        <MudText Typo="Typo.h6"
-                 Style="font-weight:700; color:#0288D1; letter-spacing:0.02em;">
-            Student Affairs Office
-        </MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Logout"
-                       OnClick="Logout"
-                       Style="color:#546E7A;" />
-    </MudAppBar>
+    <MudMainContent Class="sao-main">
+        <header class="topbar">
+            <div class="breadcrumb"><span>Student Affairs</span><MudIcon Icon="@Icons.Material.Filled.ChevronRight" /><strong>@(_activeTab switch { 0 => "Overview", 1 => "Violations", 2 => "Appeals", 3 => "Accounts", 4 => "Dismissals", 5 => "Student cases", _ => "Audit history" })</strong></div>
+            <div class="topbar-right"><span class="status-dot"></span><span>SAO workspace</span><MudIconButton Icon="@Icons.Material.Filled.Logout" title="Sign out" Class="mobile-logout" OnClick="Logout" /></div>
+        </header>
 
-    <MudMainContent Class="sao-main-content" Style="background:#F4F9FD; min-height:100vh; padding-bottom:80px;">
-
-        <div style="position:fixed; inset:0;
-                    background:radial-gradient(ellipse 60% 50% at 0% 0%, #E1F5FE 0%, transparent 60%),
-                               radial-gradient(ellipse 40% 40% at 100% 100%, #B3E5FC 0%, transparent 60%);
-                    pointer-events:none; z-index:0;"></div>
-        <div style="position:fixed; inset:0;
-                    background-image:radial-gradient(#B3E5FC 1px, transparent 1px);
-                    background-size:24px 24px;
-                    pointer-events:none; z-index:0; opacity:0.45;"></div>
-
-        <div style="position:relative; z-index:1; padding:16px 16px 0;">
-
-            @* ══════════ TAB 0 — OVERVIEW ══════════ *@
+        <main class="page-content">
             @if (_activeTab == 0)
             {
-                <div style="background:linear-gradient(135deg,#FFFFFF,#E1F5FE);
-                                        border:1px solid #B3E5FC; border-radius:16px;
-                                        padding:16px 20px; margin-bottom:18px;
-                                        display:flex; align-items:center; gap:16px;
-                                        box-shadow:0 4px 12px rgba(2,136,209,0.08);">
-                    <div style="width:44px; height:44px; border-radius:12px;
-                                            background:#0288D1;
-                                            display:flex; align-items:center; justify-content:center;
-                                            flex-shrink:0;">
-                        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Style="color:#FFFFFF; font-size:22px;" />
-                    </div>
-                    <div>
-                        <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0288D1; font-size:14px;">
-                            System Overview
-                        </MudText>
-                        <MudText Typo="Typo.caption" Style="color:#546E7A; font-size:11px;">
-                            Violations summary across the system
-                        </MudText>
-                    </div>
-                </div>
-
-                @if (_isLoadingSummary)
+                <div class="page-intro"><div><p class="eyebrow">STUDENT AFFAIRS OFFICE</p><h1>Overview</h1><p class="intro-copy">A current view of student violation records and review workload.</p></div><MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadSummaryAsync">Refresh</MudButton></div>
+                @if (_isLoadingSummary) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" /> }
+                else if (_summary is not null)
                 {
-                    <div style="text-align:center; padding:40px;">
-                        <MudProgressCircular Indeterminate="true" Style="color:#0288D1;" />
-                    </div>
-                }
-                else if (_summary != null)
-                {
-                    @* Stats Row *@
-                    <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
-                        @foreach (var stat in new[]
-                                        {
-                                (_summary.total.ToString(),    "Total",    "#0288D1", "#B3E5FC"),
-                                (_summary.pending.ToString(),  "Pending",  "#F9A825", "#FFE082"),
-                                (_summary.approved.ToString(), "Approved", "#2E7D32", "#A5D6A7"),
-                                (_summary.rejected.ToString(), "Rejected", "#E53935", "#FFCDD2")
-                                })
-                        {
-                            <div style="flex:1; min-width:70px; background:#FFFFFF;
-                                                                            border:1px solid @stat.Item4;
-                                                                            border-radius:12px; padding:12px 8px;
-                                                                            text-align:center;
-                                                                            box-shadow:0 2px 6px rgba(2,136,209,0.06);">
-                                <MudText Style="@($"font-size:1.4rem; font-weight:700; color:{stat.Item3}; line-height:1.1;")">
-                                    @stat.Item1
-                                </MudText>
-                                <MudText Style="font-size:10px; color:#90A4AE; margin-top:2px; font-weight:600;
-                                                                                   text-transform:uppercase; letter-spacing:0.04em;">
-                                    @stat.Item2
-                                </MudText>
-                            </div>
-                        }
-                    </div>
-
-                    @* By Severity *@
-                    @if (_summary.by_severity?.Any() == true)
-                    {
-                        <div style="background:#FFFFFF; border:1px solid #E1F5FE;
-                                                                        border-radius:14px; padding:16px; margin-bottom:14px;
-                                                                        box-shadow:0 2px 8px rgba(2,136,209,0.06);">
-                            <MudText Style="font-size:12px; font-weight:700; color:#546E7A;
-                                                                               text-transform:uppercase; margin-bottom:10px;">
-                                By Severity
-                            </MudText>
-                            @foreach (var item in _summary.by_severity)
+                    <section class="metric-grid">
+                        <article class="metric-card"><div class="metric-icon blue"><MudIcon Icon="@Icons.Material.Filled.Assignment" /></div><div><span>Total records</span><strong>@_summary.total</strong></div></article>
+                        <article class="metric-card"><div class="metric-icon amber"><MudIcon Icon="@Icons.Material.Filled.PendingActions" /></div><div><span>Pending review</span><strong>@_summary.pending</strong></div></article>
+                        <article class="metric-card"><div class="metric-icon green"><MudIcon Icon="@Icons.Material.Filled.CheckCircle" /></div><div><span>Approved</span><strong>@_summary.approved</strong></div></article>
+                        <article class="metric-card"><div class="metric-icon red"><MudIcon Icon="@Icons.Material.Filled.Cancel" /></div><div><span>Rejected</span><strong>@_summary.rejected</strong></div></article>
+                    </section>
+                    <section class="overview-grid">
+                        <article class="panel">
+                            <div class="panel-heading"><div><h2>Records by severity</h2><p>Distribution across recorded violations</p></div><MudIcon Icon="@Icons.Material.Filled.BarChart" Class="panel-heading-icon" /></div>
+                            @if (_summary.by_severity?.Any() == true)
                             {
-                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                                    <span style="@SeverityBadge(item.severity); min-width:70px; text-align:center;">
-                                        @item.severity
-                                    </span>
-                                    <div style="flex:1; background:#F5F5F5; border-radius:20px; height:8px; overflow:hidden;">
-                                        <div style="@($"width:{Math.Min(100, (int)((double)item.count / (_summary.total > 0 ? _summary.total : 1) * 100))}%; height:8px; background:{GetSeverityColor(item.severity)}; border-radius:20px; transition:width 0.3s;")"></div>
-                                    </div>
-                                    <MudText Style="font-size:12px; font-weight:700; color:#1A237E; min-width:24px; text-align:right;">
-                                        @item.count
-                                    </MudText>
-                                </div>
+                                @foreach (var item in _summary.by_severity.OrderByDescending(x => x.count))
+                                {
+                                    <div class="bar-row"><span class="severity-pill" style="@SeverityBadge(item.severity)">@item.severity</span><div class="bar-track"><div class="bar-fill" style="@($"width:{Math.Max(4, Math.Min(100, (int)((double)item.count / Math.Max(1, _summary.total) * 100)))}%;background:{GetSeverityColor(item.severity)}")"></div></div><strong>@item.count</strong></div>
+                                }
                             }
-                        </div>
-                    }
-
-                    @* By Type *@
-                    @if (_summary.by_type?.Any() == true)
-                    {
-                        <div style="background:#FFFFFF; border:1px solid #E1F5FE;
-                                                                        border-radius:14px; padding:16px; margin-bottom:14px;
-                                                                        box-shadow:0 2px 8px rgba(2,136,209,0.06);">
-                            <MudText Style="font-size:12px; font-weight:700; color:#546E7A;
-                                                                               text-transform:uppercase; margin-bottom:10px;">
-                                By Violation Type
-                            </MudText>
-                            @foreach (var item in _summary.by_type.OrderByDescending(x => x.count).Take(5))
+                            else { <div class="compact-empty">No severity data yet.</div> }
+                        </article>
+                        <article class="panel">
+                            <div class="panel-heading"><div><h2>Most common violation types</h2><p>Top categories in the current records</p></div><MudIcon Icon="@Icons.Material.Filled.Category" Class="panel-heading-icon" /></div>
+                            @if (_summary.by_type?.Any() == true)
                             {
-                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                                    <MudText Style="font-size:12px; color:#1A237E; flex:1;">@item.type</MudText>
-                                    <span style="background:#E1F5FE; border:1px solid #B3E5FC;
-                                                                                                 border-radius:20px; padding:2px 10px;
-                                                                                                 font-size:11px; font-weight:700; color:#0288D1;">
-                                        @item.count
-                                    </span>
-                                </div>
+                                @foreach (var item in _summary.by_type.OrderByDescending(x => x.count).Take(6))
+                                {
+                                    <div class="type-row"><span class="type-dot"></span><span class="type-name">@item.type</span><strong>@item.count</strong></div>
+                                }
                             }
-                        </div>
-                    }
+                            else { <div class="compact-empty">No violation types yet.</div> }
+                        </article>
+                    </section>
                 }
+                else { <div class="panel compact-empty">The summary could not be loaded.</div> }
             }
-
-            @* ══════════ TAB 1 — VIOLATIONS ══════════ *@
-            @if (_activeTab == 1)
+            else if (_activeTab == 1)
             {
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-                    <div style="width:4px; height:20px; background:#0288D1; border-radius:4px;"></div>
-                    <MudIcon Icon="@Icons.Material.Filled.Report" Style="color:#0288D1; font-size:19px;" />
-                    <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#1A237E; font-size:15px;">
-                        All Violations
-                    </MudText>
-                    <MudSpacer />
-                    <MudText Style="font-size:11px; color:#90A4AE;">@(_violations?.Count ?? 0) records</MudText>
-                </div>
-
-                <MudTextField @bind-Value="_violationSearch"
-                              Placeholder="Search by student no or type..."
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              Style="margin-bottom:12px; background:#FFFFFF; border-radius:12px;" />
-
-                @if (_isLoadingViolations)
-                {
-                    <div style="text-align:center; padding:40px;">
-                        <MudProgressCircular Indeterminate="true" Style="color:#0288D1;" />
-                    </div>
-                }
-                else
-                {
-                    <div style="background:#FFFFFF; border:1px solid #B3E5FC;
-                                                        border-radius:16px; overflow:hidden;
-                                                        box-shadow:0 2px 10px rgba(2,136,209,0.06);">
-                        @{
-                            var filtered = _violations?
-                            .Where(v =>
-                            string.IsNullOrEmpty(_violationSearch) ||
-                            (v.student_no?.Contains(_violationSearch, StringComparison.OrdinalIgnoreCase) == true) ||
-                            (v.type?.Contains(_violationSearch, StringComparison.OrdinalIgnoreCase) == true))
-                            .ToList();
-                        }
-
-                        @if (filtered?.Any() == true)
-                        {
-                            @foreach (var v in filtered)
-                            {
-                                <div style="padding:14px 18px; border-bottom:1px solid #F0F7FF;">
-                                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                                        <div style="flex:1; min-width:0;">
-                                            <MudText Style="font-size:13px; font-weight:600; color:#1A237E;
-                                                                                                           white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                                @v.type
-                                            </MudText>
-                                            <MudText Style="font-size:11px; color:#90A4AE;">
-                                                @v.student_no  ·  @v.date.ToString("MMM dd, yyyy")
-                                            </MudText>
-                                        </div>
-                                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
-                                            <span style="@SeverityBadge(v.severity)">@v.severity</span>
-                                            <span style="@StatusBadge(v.status)">@v.status</span>
-                                        </div>
-                                    </div>
-
-                                    @* Action buttons *@
-                                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                        @if (v.status != "Approved")
-                                        {
-                                            <MudButton Variant="Variant.Outlined"
-                                                       Size="Size.Small"
-                                                       OnClick="() => ApproveViolation(v.id)"
-                                                       Style="font-size:10px; height:24px; border-color:#2E7D32; color:#2E7D32; text-transform:none;">
-                                                Approve
-                                            </MudButton>
-                                        }
-                                        @if (v.status != "Rejected")
-                                        {
-                                            <MudButton Variant="Variant.Outlined"
-                                                       Size="Size.Small"
-                                                       OnClick="() => RejectViolation(v.id)"
-                                                       Style="font-size:10px; height:24px; border-color:#F9A825; color:#F9A825; text-transform:none;">
-                                                Reject
-                                            </MudButton>
-                                        }
-                                        <MudButton Variant="Variant.Outlined"
-                                                   Size="Size.Small"
-                                                   OnClick="() => ConfirmDeleteViolation(v.id, v.type)"
-                                                   Style="font-size:10px; height:24px; border-color:#E53935; color:#E53935; text-transform:none;">
-                                            Delete
-                                        </MudButton>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div style="padding:40px; text-align:center;">
-                                <MudText Style="color:#90A4AE;">No violations found.</MudText>
-                            </div>
-                        }
-                    </div>
-                }
-            }
-
-            @* ══════════ TAB 2 — APPEALS ══════════ *@
-            @if (_activeTab == 2)
-            {
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-                    <div style="width:4px; height:20px; background:#E65100; border-radius:4px;"></div>
-                    <MudIcon Icon="@Icons.Material.Filled.Gavel" Style="color:#E65100; font-size:19px;" />
-                    <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#1A237E; font-size:15px;">
-                        Pending Appeals
-                    </MudText>
-                </div>
-
-                @if (_isLoadingAppeals)
-                {
-                    <div style="text-align:center; padding:40px;">
-                        <MudProgressCircular Indeterminate="true" Style="color:#E65100;" />
-                    </div>
-                }
-                else if (_appeals?.Any() == true)
-                {
-                    @foreach (var a in _appeals)
+                <div class="page-intro"><div><p class="eyebrow">RECORD MANAGEMENT</p><h1>Violations</h1><p class="intro-copy">Review reports, update their status, or remove an incorrect record.</p></div><MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadViolationsAsync">Refresh</MudButton></div>
+                <section class="panel">
+                    <div class="table-toolbar"><div><h2>All violation records</h2><p>@(_violations?.Count ?? 0) records</p></div><MudTextField @bind-Value="_violationSearch" Placeholder="Search student or violation" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Class="table-search" /></div>
+                    @if (_isLoadingViolations) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                    else
                     {
-                        <div style="background:#FFFFFF; border:1px solid #B3E5FC;
-                                                                        border-radius:14px; padding:16px 18px; margin-bottom:12px;
-                                                                        box-shadow:0 2px 8px rgba(2,136,209,0.06);">
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                                <div style="flex:1;">
-                                    <MudText Style="font-size:13px; font-weight:600; color:#1A237E;">@a.type</MudText>
-                                    <MudText Style="font-size:11px; color:#90A4AE;">
-                                        @a.student_no  ·  @a.date.ToString("MMM dd, yyyy")
-                                    </MudText>
-                                </div>
-                                <span style="@SeverityBadge(a.severity)">@a.severity</span>
-                            </div>
-
-                            @if (!string.IsNullOrEmpty(a.appeal_text))
-                            {
-                                <div style="background:#FFF3E0; border:1px solid #FFE0B2;
-                                                                                            border-radius:8px; padding:10px 12px; margin-bottom:10px;">
-                                    <MudText Style="font-size:10px; color:#E65100; font-weight:600; margin-bottom:4px;">
-                                        APPEAL REASON
-                                    </MudText>
-                                    <MudText Style="font-size:12px; color:#795548;">@a.appeal_text</MudText>
-                                </div>
-                            }
-
-                            <MudButton Variant="Variant.Filled"
-                                       FullWidth="true"
-                                       Size="Size.Small"
-                                       OnClick="() => OpenAppealReview(a.id, a.type)"
-                                       Style="background:#0288D1; color:#FFFFFF; text-transform:none; font-size:11px; border-radius:8px;">
-                                Review Appeal
-                            </MudButton>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div style="background:#FFFFFF; border:1px solid #B3E5FC;
-                                                        border-radius:16px; padding:48px; text-align:center;
-                                                        box-shadow:0 2px 8px rgba(2,136,209,0.06);">
-                        <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline"
-                                 Style="color:#4FC3F7; font-size:48px;" />
-                        <MudText Style="color:#90A4AE; font-size:13px; margin-top:8px; display:block;">
-                            No pending appeals.
-                        </MudText>
-                    </div>
-                }
-            }
-
-            @* ══════════ TAB 3 — USERS ══════════ *@
-            @if (_activeTab == 3)
-            {
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-                    <div style="width:4px; height:20px; background:#0288D1; border-radius:4px;"></div>
-                    <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Style="color:#0288D1; font-size:19px;" />
-                    <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#1A237E; font-size:15px;">
-                        User Management
-                    </MudText>
-                    <MudSpacer />
-                    <MudText Style="font-size:11px; color:#90A4AE;">@(_users?.Count ?? 0) users</MudText>
-                </div>
-
-                <MudTextField @bind-Value="_userSearch"
-                              Placeholder="Search by name, username, or role..."
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              Style="margin-bottom:12px; background:#FFFFFF; border-radius:12px;" />
-
-                @if (_isLoadingUsers)
-                {
-                    <div style="text-align:center; padding:40px;">
-                        <MudProgressCircular Indeterminate="true" Style="color:#0288D1;" />
-                    </div>
-                }
-                else
-                {
-                    <div style="background:#FFFFFF; border:1px solid #B3E5FC;
-                                                        border-radius:16px; overflow:hidden;
-                                                        box-shadow:0 2px 10px rgba(2,136,209,0.06);">
-                        @{
-                            var filtered = _users?
-                            .Where(u =>
-                            string.IsNullOrEmpty(_userSearch) ||
-                            (u.name?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true) ||
-                            (u.username?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true) ||
-                            (u.role?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true))
-                            .ToList();
-                        }
-
-                        @if (filtered?.Any() == true)
+                        var rows = _violations?.Where(v => string.IsNullOrWhiteSpace(_violationSearch) || (v.student_no?.Contains(_violationSearch, StringComparison.OrdinalIgnoreCase) == true) || (v.type?.Contains(_violationSearch, StringComparison.OrdinalIgnoreCase) == true)).ToList();
+                        @if (rows?.Any() == true)
                         {
-                            @foreach (var u in filtered)
+                            <div class="table-scroll"><table class="svs-table"><thead><tr><th>Violation</th><th>Student</th><th>Date</th><th>Severity</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+                            @foreach (var v in rows)
                             {
-                                <div style="padding:12px 18px; border-bottom:1px solid #F0F7FF;
-                                                                                            display:flex; align-items:center; gap:12px;">
-                                    <div style="width:38px; height:38px; border-radius:50%;
-                                                                                                background:linear-gradient(135deg,#B3E5FC,#81D4FA);
-                                                                                                border:1px solid #4FC3F7;
-                                                                                                display:flex; align-items:center; justify-content:center;
-                                                                                                font-size:14px; font-weight:700; color:#0288D1;
-                                                                                                flex-shrink:0;">
-                                        @if (!string.IsNullOrEmpty(u.profile_photo))
-                                        {
-                                            <img src="data:image/jpeg;base64,@u.profile_photo"
-                                                 style="width:38px; height:38px; object-fit:cover; border-radius:50%;" />
-                                        }
-                                        else
-                                        {
-                                            @(u.name?.Substring(0, 1).ToUpper() ?? "U")
-                                        }
-                                    </div>
-                                    <div style="flex:1; min-width:0;">
-                                        <div style="display:flex; align-items:center; gap:6px;">
-                                            <MudText Style="font-size:13px; font-weight:600; color:#1A237E;
-                                                                                                           white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">
-                                                @u.name
-                                            </MudText>
-                                            <span style="@RoleBadge(u.role)">@u.role</span>
-                                        </div>
-                                        <MudText Style="font-size:11px; color:#90A4AE;">
-                                            @@@u.username  ·  @u.email
-                                        </MudText>
-                                    </div>
-                                    <div style="display:flex; flex-direction:column; gap:4px;">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                       Size="Size.Small"
-                                                       OnClick="() => OpenEditUser(u)"
-                                                       Style="color:#0288D1; padding:4px;" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                       Size="Size.Small"
-                                                       OnClick="() => ConfirmDeleteUser(u.id, u.name)"
-                                                       Style="color:#E53935; padding:4px;" />
-                                    </div>
-                                </div>
+                                <tr><td><strong>@v.type</strong><small class="cell-sub">@v.details</small></td><td>@v.student_no</td><td>@v.date.ToString("MMM d, yyyy")</td><td><span style="@SeverityBadge(v.severity)">@v.severity</span></td><td><span style="@StatusBadge(v.status)">@v.status</span></td><td><div class="row-actions">
+                                    @if (v.status != "Approved") { <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success" OnClick="() => ApproveViolation(v.id)">Approve</MudButton> }
+                                    @if (v.status != "Rejected") { <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="() => RejectViolation(v.id)">Reject</MudButton> }
+                                    <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Error" OnClick="() => ConfirmDeleteViolation(v.id, v.type)">Delete</MudButton>
+                                </div></td></tr>
                             }
+                            </tbody></table></div>
                         }
-                        else
+                        else { <div class="compact-empty">No violation records match this search.</div> }
+                    }
+                </section>
+            }
+            else if (_activeTab == 2)
+            {
+                <div class="page-intro"><div><p class="eyebrow">STUDENT REQUESTS</p><h1>Appeals</h1><p class="intro-copy">Read the student's reason and record a decision.</p></div><MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadAppealsAsync">Refresh</MudButton></div>
+                <section class="panel">
+                    <div class="table-toolbar"><div><h2>Pending appeals</h2><p>@(_appeals?.Count ?? 0) awaiting review</p></div></div>
+                    @if (_isLoadingAppeals) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                    else if (_appeals?.Any() == true)
+                    {
+                        <div class="table-scroll"><table class="svs-table"><thead><tr><th>Student</th><th>Violation</th><th>Reason</th><th>Filed</th><th>Action</th></tr></thead><tbody>
+                        @foreach (var a in _appeals)
                         {
-                            <div style="padding:40px; text-align:center;">
-                                <MudText Style="color:#90A4AE;">No users found.</MudText>
+                            <tr><td><strong>@a.student_no</strong></td><td><strong>@a.type</strong><small class="cell-sub">@a.severity · @a.status</small></td><td class="appeal-reason">@(string.IsNullOrWhiteSpace(a.appeal_text) ? "No reason provided" : a.appeal_text)</td><td>@a.date.ToString("MMM d, yyyy")</td><td><MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.RateReview" OnClick="() => OpenAppealReview(a.id, a.type)">Review appeal</MudButton></td></tr>
+                        }
+                        </tbody></table></div>
+                    }
+                    else { <div class="empty-state"><div class="empty-check"><MudIcon Icon="@Icons.Material.Filled.DoneAll" /></div><strong>You're all caught up</strong><span>There are no pending appeals right now.</span></div> }
+                </section>
+            }
+            else if (_activeTab == 3)
+            {
+                <div class="page-intro"><div><p class="eyebrow">ACCOUNT DIRECTORY</p><h1>Accounts</h1><p class="intro-copy">Find and maintain student and guard account details.</p></div><MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadUsersAsync">Refresh</MudButton></div>
+                <section class="panel">
+                    <div class="table-toolbar"><div><h2>System accounts</h2><p>@(_users?.Count ?? 0) accounts</p></div><MudTextField @bind-Value="_userSearch" Placeholder="Search name, username, or role" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Class="table-search" /></div>
+                    @if (_isLoadingUsers) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                    else
+                    {
+                        var users = _users?.Where(u => string.IsNullOrWhiteSpace(_userSearch) || (u.name?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true) || (u.username?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true) || (u.role?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true)).ToList();
+                        @if (users?.Any() == true)
+                        {
+                            <div class="table-scroll"><table class="svs-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Email</th><th>Actions</th></tr></thead><tbody>
+                            @foreach (var u in users)
+                            {
+                                <tr><td><strong>@u.name</strong></td><td>@u.username</td><td><span style="@RoleBadge(u.role)">@u.role</span></td><td>@u.email</td><td><div class="row-actions"><MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" title="Edit account" OnClick="() => OpenEditUser(u)" /><MudIconButton Icon="@Icons.Material.Filled.DeleteOutline" Color="Color.Error" title="Delete account" OnClick="() => ConfirmDeleteUser(u.id, u.name)" /></div></td></tr>
+                            }
+                            </tbody></table></div>
+                        }
+                        else { <div class="compact-empty">No accounts match this search.</div> }
+                    }
+                </section>
+            }
+            else if (_activeTab == 4)
+            {
+                <div class="page-intro"><div><p class="eyebrow">STUDENT STATUS</p><h1>Dismissals</h1><p class="intro-copy">Review recommendations and restore students when a dismissal is cancelled.</p></div><MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="RefreshDismissals">Refresh</MudButton></div>
+                <section class="dismissal-grid">
+                    <article class="panel"><div class="panel-heading"><div><h2>Awaiting final review</h2><p>@(_dismissals?.Count ?? 0) students</p></div><span class="count-badge warning">@(_dismissals?.Count ?? 0)</span></div>
+                        @if (_isLoadingDismissals) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                        else if (_dismissals?.Any() == true)
+                        {
+                            <div class="compact-list">
+                            @foreach (var d in _dismissals)
+                            {
+                                <div class="person-row"><div class="person-avatar">@if (!string.IsNullOrEmpty(d.profilePhoto)){<img src="data:image/jpeg;base64,@d.profilePhoto" alt="" />}else{@(d.FirstName?.FirstOrDefault().ToString().ToUpper() ?? "S")}</div><div class="person-data"><strong>@d.FirstName @d.LastName</strong><span>@d.StudentNo · @d.Course · Year @d.Year</span></div><div class="row-actions"><MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Filled" OnClick="() => DismissStudent(d.StudentNo!)">Finalize</MudButton><MudButton Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined" OnClick="() => CancelDismissal(d.StudentNo!)">Cancel</MudButton></div></div>
+                            }
                             </div>
                         }
-                    </div>
-                }
+                        else { <div class="compact-empty">No students are awaiting dismissal review.</div> }
+                    </article>
+                    <article class="panel"><div class="panel-heading"><div><h2>Dismissed students</h2><p>@(_dismissedStudents?.Count ?? 0) accounts</p></div><span class="count-badge neutral">@(_dismissedStudents?.Count ?? 0)</span></div>
+                        @if (_isLoadingDismissed) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                        else if (_dismissedStudents?.Any() == true)
+                        {
+                            <div class="compact-list">
+                            @foreach (var d in _dismissedStudents)
+                            {
+                                <div class="person-row"><div class="person-avatar muted">@if (!string.IsNullOrEmpty(d.profilePhoto)){<img src="data:image/jpeg;base64,@d.profilePhoto" alt="" />}else{@(d.FirstName?.FirstOrDefault().ToString().ToUpper() ?? "S")}</div><div class="person-data"><strong>@d.FirstName @d.LastName</strong><span>@d.StudentNo · @d.Course · Year @d.Year</span></div><MudButton Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined" OnClick="() => CancelDismissal(d.StudentNo!)">Reinstate</MudButton></div>
+                            }
+                            </div>
+                        }
+                        else { <div class="compact-empty">No dismissed students.</div> }
+                    </article>
+                </section>
             }
-
-            @* ══════════ TAB 4 — DISMISSALS ══════════ *@
-            @if (_activeTab == 4)
+            else if (_activeTab == 5)
             {
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-                    <div style="width:4px; height:20px; background:#E53935; border-radius:4px;"></div>
-                    <MudIcon Icon="@Icons.Material.Filled.PersonRemove" Style="color:#E53935; font-size:19px;" />
-                    <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#1A237E; font-size:15px;">
-                        Pending Dismissals
-                    </MudText>
-                </div>
-
-                @if (_isLoadingDismissals)
-                {
-                    <div style="text-align:center; padding:40px;">
-                        <MudProgressCircular Indeterminate="true" Style="color:#E53935;" />
-                    </div>
-                }
-                else if (_dismissals?.Any() == true)
-                {
-                    @foreach (var d in _dismissals)
-                    {
-                        <div style="background:#FFFFFF; border:1px solid #FFCDD2;
-                                                                        border-radius:14px; padding:16px 18px; margin-bottom:12px;
-                                                                        box-shadow:0 2px 8px rgba(229,57,53,0.08);">
-                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                                <div style="width:40px; height:40px; border-radius:50%; flex-shrink:0; overflow:hidden;">
-                                    @if (!string.IsNullOrEmpty(d.profilePhoto))
-                                    {
-                                        <img src="data:image/jpeg;base64,@d.profilePhoto"
-                                             style="width:40px; height:40px; object-fit:cover; border-radius:50%;" />
-                                    }
-                                    else
-                                    {
-                                        <div style="width:40px; height:40px; border-radius:50%;
-                                    background:#FFEBEE; border:1px solid #FFCDD2;
-                                    display:flex; align-items:center; justify-content:center;
-                                    font-size:15px; font-weight:700; color:#E53935;">
-                                            @(d.FirstName?.Substring(0, 1).ToUpper() ?? "S")
-                                        </div>
-                                    }
-                                </div>
-                                <div style="flex:1;">
-                                    <MudText Style="font-weight:700; color:#1A237E; font-size:13px;">
-                                        @d.FirstName @d.LastName
-                                    </MudText>
-                                    <MudText Style="font-size:11px; color:#90A4AE;">
-                                        @d.StudentNo  ·  @d.Course  Year @d.Year
-                                    </MudText>
-                                </div>
-                                <span style="padding:3px 10px; border-radius:20px; font-size:10px;
-                                                                                 font-weight:700; background:#FFEBEE; border:1px solid #FFCDD2;
-                                                                                 color:#E53935;">
-                                    @d.Status
-                                </span>
-                            </div>
-
-                            <div style="display:flex; gap:8px;">
-                                <MudButton Variant="Variant.Filled"
-                                           Size="Size.Small"
-                                           OnClick="() => DismissStudent(d.StudentNo!)"
-                                           Style="flex:1; background:#E53935; color:#FFFFFF; text-transform:none; font-size:11px; border-radius:8px;">
-                                    Confirm Dismissal
-                                </MudButton>
-                                <MudButton Variant="Variant.Outlined"
-                                           Size="Size.Small"
-                                           OnClick="() => CancelDismissal(d.StudentNo!)"
-                                           Style="flex:1; border-color:#2E7D32; color:#2E7D32; text-transform:none; font-size:11px; border-radius:8px;">
-                                    Cancel / Reinstate
-                                </MudButton>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div style="background:#FFFFFF; border:1px solid #B3E5FC;
-                                                        border-radius:16px; padding:48px; text-align:center;
-                                                        box-shadow:0 2px 8px rgba(2,136,209,0.06);">
-                        <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline"
-                                 Style="color:#4FC3F7; font-size:48px;" />
-                        <MudText Style="color:#90A4AE; font-size:13px; margin-top:8px; display:block;">
-                            No pending dismissals.
-                        </MudText>
-                    </div>
-                }
-
-                @* Dismissed Students *@
-                <div style="display:flex; align-items:center; gap:10px; margin-top:20px; margin-bottom:14px;">
-                    <div style="width:4px; height:20px; background:#546E7A; border-radius:4px;"></div>
-                    <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#1A237E; font-size:15px;">
-                        Dismissed Students
-                    </MudText>
-                </div>
-
-                @if (_isLoadingDismissed)
-                {
-                    <div style="text-align:center; padding:20px;">
-                        <MudProgressCircular Indeterminate="true" Style="color:#546E7A;" />
-                    </div>
-                }
-                else if (_dismissedStudents?.Any() == true)
-                {
-                    @foreach (var d in _dismissedStudents)
-                    {
-                        <div style="background:#FFFFFF; border:1px solid #B3E5FC;
-                                border-radius:14px; padding:16px 18px; margin-bottom:12px;
-                                box-shadow:0 2px 8px rgba(2,136,209,0.06);">
-                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-                                <div style="width:40px; height:40px; border-radius:50%; flex-shrink:0; overflow:hidden;">
-                                    @if (!string.IsNullOrEmpty(d.profilePhoto))
-                                    {
-                                        <img src="data:image/jpeg;base64,@d.profilePhoto"
-                                             style="width:40px; height:40px; object-fit:cover; border-radius:50%;" />
-                                    }
-                                    else
-                                    {
-                                        <div style="width:40px; height:40px; border-radius:50%;
-                                                    background:linear-gradient(135deg,#B3E5FC,#81D4FA);
-                                                    border:1px solid #4FC3F7;
-                                                    display:flex; align-items:center; justify-content:center;
-                                                    font-size:15px; font-weight:700; color:#0288D1;">
-                                            @(d.FirstName?.Substring(0, 1).ToUpper() ?? "S")
-                                        </div>
-                                    }
-                                </div>
-                                <div style="flex:1;">
-                                    <MudText Style="font-weight:700; color:#1A237E; font-size:13px;">
-                                        @d.FirstName @d.LastName
-                                    </MudText>
-                                    <MudText Style="font-size:11px; color:#90A4AE;">
-                                        @d.StudentNo  ·  @d.Course  Year @d.Year
-                                    </MudText>
-                                </div>
-                                <span style="padding:3px 10px; border-radius:20px; font-size:10px;
-                                         font-weight:700; background:#ECEFF1; border:1px solid #CFD8DC;
-                                         color:#546E7A;">
-                                    Dismissed
-                                </span>
-                            </div>
-                            <MudButton Variant="Variant.Outlined"
-                                       FullWidth="true"
-                                       Size="Size.Small"
-                                       OnClick="() => CancelDismissal(d.StudentNo!)"
-                                       Style="border-color:#2E7D32; color:#2E7D32; text-transform:none; font-size:11px; border-radius:8px;">
-                                Reinstate Student
-                            </MudButton>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div style="background:#FFFFFF; border:1px solid #B3E5FC;
-                        border-radius:16px; padding:24px; text-align:center;
-                        box-shadow:0 2px 8px rgba(2,136,209,0.06);">
-                        <MudText Style="color:#90A4AE; font-size:13px;">No dismissed students.</MudText>
-                    </div>
-                }
-            }
-
-            @if (_activeTab == 5)
-            {
-                <MudPaper Class="pa-5 mb-4" Elevation="0" Style="background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
-                    <MudText Typo="Typo.h5" Style="font-weight:750;color:#17243a;">Student case review</MudText>
-                    <MudText Typo="Typo.body2" Style="color:#718096;margin-bottom:18px;">Review a student's violation history and apply the action recommended by the backend.</MudText>
-                    <div style="display:flex;gap:10px;max-width:680px;flex-wrap:wrap;align-items:center;">
-                        <MudTextField @bind-Value="_studentLookupNo" Label="Student number" Variant="Variant.Outlined" Margin="Margin.Dense" Style="flex:1;min-width:230px;" />
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoadingStudent" OnClick="LoadStudentCase" StartIcon="@Icons.Material.Filled.Search">Find student</MudButton>
-                    </div>
-                </MudPaper>
-                @if (_isLoadingStudent) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                <div class="page-intro"><div><p class="eyebrow">STUDENT SUPPORT</p><h1>Student cases</h1><p class="intro-copy">Review a student's history and apply the action indicated by the backend.</p></div></div>
+                <section class="panel search-panel"><MudTextField @bind-Value="_studentLookupNo" Label="Student number" Placeholder="Enter a student number" Variant="Variant.Outlined" Margin="Margin.Dense" /><MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoadingStudent" StartIcon="@Icons.Material.Filled.Search" OnClick="LoadStudentCase">Find student</MudButton></section>
+                @if (_isLoadingStudent) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="my-3" /> }
                 else if (_studentReport is not null)
                 {
-                    <MudGrid Spacing="3" Class="mb-4">
-                        <MudItem xs="12" md="8">
-                            <MudPaper Class="pa-5" Elevation="0" Style="height:100%;background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
-                                <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">
-                                    <div><MudText Typo="Typo.h5" Style="font-weight:750;">@_studentReport.name</MudText><MudText Typo="Typo.body2" Style="color:#718096;">@_studentReport.student_no · @_studentReport.course · Year @_studentReport.year</MudText></div>
-                                    <MudChip T="string" Color="@LevelColor(_studentLevel?.ViolationLevel)" Variant="Variant.Filled">@(_studentLevel?.ViolationLevel ?? "Unknown")</MudChip>
-                                </div>
-                                <MudDivider Class="my-4" />
-                                <MudGrid Spacing="2">
-                                    <MudItem xs="12" sm="4"><MudText Typo="Typo.caption" Style="color:#718096;">ACTIVE VIOLATIONS</MudText><MudText Typo="Typo.h5" Style="font-weight:750;">@(_studentLevel?.ActiveViolations ?? _studentReport.violation_count)</MudText></MudItem>
-                                    <MudItem xs="12" sm="4"><MudText Typo="Typo.caption" Style="color:#718096;">RECOMMENDED ACTION</MudText><MudText Typo="Typo.subtitle1" Style="font-weight:700;">@(_studentLevel?.RecommendedAction ?? _studentReport.recommended_action)</MudText></MudItem>
-                                    <MudItem xs="12" sm="4"><MudText Typo="Typo.caption" Style="color:#718096;">CONTACT</MudText><MudText Typo="Typo.body2">@_studentReport.email</MudText></MudItem>
-                                </MudGrid>
-                                <MudText Typo="Typo.subtitle1" Style="font-weight:700;margin-top:22px;margin-bottom:8px;">Violation history</MudText>
-                                @if (_studentReport.violations?.Any() == true)
-                                {
-                                    <MudTable Items="_studentReport.violations" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm">
-                                        <HeaderContent><MudTh>Date</MudTh><MudTh>Violation</MudTh><MudTh>Severity</MudTh><MudTh>Status</MudTh></HeaderContent>
-                                        <RowTemplate><MudTd DataLabel="Date">@context.date.ToString("MMM d, yyyy")</MudTd><MudTd DataLabel="Violation"><b>@context.type</b><div><small>@context.details</small></div></MudTd><MudTd DataLabel="Severity">@context.severity</MudTd><MudTd DataLabel="Status">@context.status</MudTd></RowTemplate>
-                                    </MudTable>
-                                }
-                                else { <MudText Typo="Typo.body2" Style="color:#718096;">No violation records found.</MudText> }
-                            </MudPaper>
-                        </MudItem>
-                        <MudItem xs="12" md="4">
-                            <MudPaper Class="pa-5" Elevation="0" Style="height:100%;background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
-                                <MudText Typo="Typo.h6" Style="font-weight:750;">Available actions</MudText>
-                                <MudText Typo="Typo.body2" Style="color:#718096;margin-bottom:18px;">Actions are enabled only when the student's active violation count meets the backend rule.</MudText>
-                                <MudButton FullWidth="true" Class="mb-2" Variant="Variant.Outlined" Color="Color.Warning" Disabled="@(_studentLevel?.ActiveViolations != 1 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("warn"))">Issue warning · 1 active violation</MudButton>
-                                <MudButton FullWidth="true" Class="mb-2" Variant="Variant.Outlined" Color="Color.Warning" Disabled="@(_studentLevel?.ActiveViolations != 2 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("counsel"))">Assign counseling · 2 active violations</MudButton>
-                                <MudButton FullWidth="true" Variant="Variant.Outlined" Color="Color.Error" Disabled="@((_studentLevel?.ActiveViolations ?? 0) < 3 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("recommend-dismiss"))">Recommend dismissal · 3+ active violations</MudButton>
-                            </MudPaper>
-                        </MudItem>
-                    </MudGrid>
+                    <section class="case-grid">
+                        <article class="panel case-summary">
+                            <div class="case-header"><div class="student-avatar"><MudIcon Icon="@Icons.Material.Filled.Person" /></div><div class="case-person"><h2>@_studentReport.name</h2><p>@_studentReport.student_no · @_studentReport.course · Year @_studentReport.year</p></div><MudChip T="string" Color="@LevelColor(_studentLevel?.ViolationLevel)">@(_studentLevel?.ViolationLevel ?? "Unknown") level</MudChip></div>
+                            <div class="case-stats"><div><span>Active violations</span><strong>@(_studentLevel?.ActiveViolations ?? _studentReport.violation_count)</strong></div><div><span>Recommended action</span><strong>@(_studentLevel?.RecommendedAction ?? _studentReport.recommended_action)</strong></div><div><span>Email</span><strong>@_studentReport.email</strong></div></div>
+                            <h3>Violation history</h3>
+                            @if (_studentReport.violations?.Any() == true)
+                            {
+                                <div class="table-scroll"><table class="svs-table"><thead><tr><th>Date</th><th>Violation</th><th>Severity</th><th>Status</th></tr></thead><tbody>@foreach(var v in _studentReport.violations){<tr><td>@v.date.ToString("MMM d, yyyy")</td><td><strong>@v.type</strong><small class="cell-sub">@v.details</small></td><td><span style="@SeverityBadge(v.severity)">@v.severity</span></td><td><span style="@StatusBadge(v.status)">@v.status</span></td></tr>}</tbody></table></div>
+                            }
+                            else { <div class="compact-empty">No violation records for this student.</div> }
+                        </article>
+                        <article class="panel case-actions"><h2>Case actions</h2><p>Buttons are available only when the active count meets the rule.</p>
+                            <MudButton FullWidth="true" Variant="Variant.Outlined" Color="Color.Warning" Disabled="@(_studentLevel?.ActiveViolations != 1 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("warn"))">Issue warning</MudButton>
+                            <MudButton FullWidth="true" Variant="Variant.Outlined" Color="Color.Warning" Disabled="@(_studentLevel?.ActiveViolations != 2 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("counsel"))">Assign counseling</MudButton>
+                            <MudButton FullWidth="true" Variant="Variant.Outlined" Color="Color.Error" Disabled="@((_studentLevel?.ActiveViolations ?? 0) < 3 || _studentActionBusy)" OnClick="@(()=>ApplyStudentAction("recommend-dismiss"))">Recommend dismissal</MudButton>
+                        </article>
+                    </section>
                 }
             }
-            @if (_activeTab == 6)
+            else
             {
-                <MudPaper Class="pa-5" Elevation="0" Style="background:#fff;border:1px solid #e5eaf1;border-radius:16px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-                        <div><MudText Typo="Typo.h5" Style="font-weight:750;color:#17243a;">Audit history</MudText><MudText Typo="Typo.body2" Style="color:#718096;">Recent recorded actions, optionally filtered by student number.</MudText></div>
-                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                            <MudTextField @bind-Value="_auditStudentNo" Label="Student number (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoadingAudit" OnClick="LoadAuditHistory" StartIcon="@Icons.Material.Filled.Search">Search</MudButton>
-                        </div>
-                    </div>
+                <div class="page-intro"><div><p class="eyebrow">SYSTEM RECORDS</p><h1>Audit history</h1><p class="intro-copy">Review recent administrative changes, with an optional student filter.</p></div></div>
+                <section class="panel"><div class="table-toolbar"><div><h2>Recent activity</h2><p>Latest 100 entries</p></div><div class="inline-search"><MudTextField @bind-Value="_auditStudentNo" Label="Student number (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" /><MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoadingAudit" OnClick="LoadAuditHistory">Search</MudButton></div></div>
                     @if (_isLoadingAudit) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
                     else if (_auditEntries?.Any() == true)
                     {
-                        <MudTable Items="_auditEntries" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="15">
-                            <HeaderContent><MudTh>When</MudTh><MudTh>Action</MudTh><MudTh>Student</MudTh><MudTh>Changed by</MudTh><MudTh>Details</MudTh></HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="When">@context.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</MudTd>
-                                <MudTd DataLabel="Action"><b>@context.Action</b></MudTd>
-                                <MudTd DataLabel="Student">@(context.StudentNo ?? "—")</MudTd>
-                                <MudTd DataLabel="Changed by">@context.ActorUsername <small>(@context.ActorRole)</small></MudTd>
-                                <MudTd DataLabel="Details">@(context.Remarks ?? $"{context.PreviousValue ?? "—"} → {context.NewValue ?? "—"}")</MudTd>
-                            </RowTemplate>
-                            <PagerContent><MudTablePager /></PagerContent>
-                        </MudTable>
+                        <div class="table-scroll"><table class="svs-table"><thead><tr><th>Time</th><th>Action</th><th>Student</th><th>Actor</th><th>Details</th></tr></thead><tbody>@foreach(var item in _auditEntries){<tr><td>@item.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</td><td><strong>@item.Action</strong></td><td>@(item.StudentNo ?? "—")</td><td>@item.ActorUsername <small class="cell-sub">@item.ActorRole</small></td><td>@(item.Remarks ?? $"{item.PreviousValue ?? "—"} → {item.NewValue ?? "—"}")</td></tr>}</tbody></table></div>
                     }
-                    else { <div style="padding:48px;text-align:center;color:#718096;">No audit records found for this search.</div> }
-                </MudPaper>
+                    else { <div class="compact-empty">No audit records found for this search.</div> }
+                </section>
             }
-
-        </div>
+        </main>
     </MudMainContent>
-
-    @* ── Bottom Nav ── *@
-    <div class="sao-navigation">
-
-        <button @onclick="() => SwitchTab(0)" style="@NavBtn(0)">
-            <MudIcon Icon="@Icons.Material.Filled.Dashboard" Style="@NavIcon(0)" />
-            <span style="@NavLabel(0)">Overview</span>
-        </button>
-        <button @onclick="() => SwitchTab(1)" style="@NavBtn(1)">
-            <MudIcon Icon="@Icons.Material.Filled.Report" Style="@NavIcon(1)" />
-            <span style="@NavLabel(1)">Violations</span>
-        </button>
-        <button @onclick="() => SwitchTab(2)" style="@NavBtn(2)">
-            <MudIcon Icon="@Icons.Material.Filled.Gavel" Style="@NavIcon(2)" />
-            <span style="@NavLabel(2)">Appeals</span>
-        </button>
-        <button @onclick="() => SwitchTab(3)" style="@NavBtn(3)">
-            <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Style="@NavIcon(3)" />
-            <span style="@NavLabel(3)">Users</span>
-        </button>
-        <button @onclick="() => SwitchTab(4)" style="@NavBtn(4)">
-            <MudIcon Icon="@Icons.Material.Filled.PersonRemove" Style="@NavIcon(4)" />
-            <span style="@NavLabel(4)">Dismiss</span>
-        </button>
-        <button @onclick="() => SwitchTab(5)" style="@NavBtn(5)">
-            <MudIcon Icon="@Icons.Material.Filled.PersonSearch" Style="@NavIcon(5)" />
-            <span style="@NavLabel(5)">Students</span>
-        </button>
-        <button @onclick="() => SwitchTab(6)" style="@NavBtn(6)">
-            <MudIcon Icon="@Icons.Material.Filled.History" Style="@NavIcon(6)" />
-            <span style="@NavLabel(6)">Audit</span>
-        </button>
-
-    </div>
-
 </MudLayout>
 
-@* ══════════ EDIT USER DIALOG ══════════ *@
-@if (_showEditUser && _editUser != null)
+@if (_showEditUser && _editUser is not null)
 {
-    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.5);
-                            z-index:1000; display:flex; align-items:center; justify-content:center; padding:16px;">
-        <div style="background:#FFFFFF; border-radius:20px; padding:24px;
-                                width:100%; max-width:420px;
-                                box-shadow:0 20px 60px rgba(0,0,0,0.20); overflow-y:auto; max-height:90vh;">
-
-            <MudText Typo="Typo.h6" Style="font-weight:700; color:#1A237E; margin-bottom:16px;">
-                Edit User — @_editUser.username
-            </MudText>
-
-            <MudTextField @bind-Value="_editRequest.FirstName"
-                          Label="First Name"
-                          Variant="Variant.Outlined"
-                          Style="margin-bottom:12px;" />
-            <MudTextField @bind-Value="_editRequest.LastName"
-                          Label="Last Name"
-                          Variant="Variant.Outlined"
-                          Style="margin-bottom:12px;" />
-            <MudTextField @bind-Value="_editRequest.Email"
-                          Label="Email"
-                          Variant="Variant.Outlined"
-                          Style="margin-bottom:12px;" />
-            <MudTextField @bind-Value="_editRequest.ContactNumber"
-                          Label="Contact Number"
-                          Variant="Variant.Outlined"
-                          Style="margin-bottom:12px;" />
-            <MudTextField @bind-Value="_editRequest.Address"
-                          Label="Address"
-                          Variant="Variant.Outlined"
-                          Style="margin-bottom:12px;" />
-            <MudSelect @bind-Value="_editRequest.Gender"
-                       Label="Gender"
-                       Variant="Variant.Outlined"
-                       Style="margin-bottom:16px;">
-                <MudSelectItem Value="@("male")">Male</MudSelectItem>
-                <MudSelectItem Value="@("female")">Female</MudSelectItem>
-            </MudSelect>
-
-            <div style="display:flex; gap:10px;">
-                <MudButton Variant="Variant.Outlined"
-                           FullWidth="true"
-                           OnClick="CloseEditUser"
-                           Style="border-color:#90A4AE; color:#546E7A; text-transform:none; border-radius:10px;">
-                    Cancel
-                </MudButton>
-                <MudButton Variant="Variant.Filled"
-                           FullWidth="true"
-                           Disabled="_isSavingUser"
-                           OnClick="SaveUser"
-                           Style="background:#0288D1; color:#FFFFFF; text-transform:none; border-radius:10px;
-                                      box-shadow:0 4px 8px rgba(2,136,209,0.25);">
-                    @(_isSavingUser ? "Saving…" : "Save Changes")
-                </MudButton>
-            </div>
-        </div>
-    </div>
+    <div class="dialog-backdrop"><section class="action-dialog"><div class="dialog-heading"><div class="dialog-icon blue"><MudIcon Icon="@Icons.Material.Filled.Edit" /></div><div><h2>Edit account</h2><p>@_editUser.username</p></div></div>
+        <MudTextField @bind-Value="_editRequest.FirstName" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="_editRequest.LastName" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="_editRequest.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="_editRequest.ContactNumber" Label="Contact number" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="_editRequest.Address" Label="Address" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudSelect @bind-Value="_editRequest.Gender" Label="Gender" Variant="Variant.Outlined" Margin="Margin.Dense"><MudSelectItem Value="@("male")">Male</MudSelectItem><MudSelectItem Value="@("female")">Female</MudSelectItem></MudSelect>
+        <div class="dialog-actions"><MudButton Variant="Variant.Text" OnClick="CloseEditUser">Cancel</MudButton><MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_isSavingUser" OnClick="SaveUser">Save changes</MudButton></div>
+    </section></div>
 }
-
-@* ══════════ APPEAL REVIEW DIALOG ══════════ *@
 @if (_showAppealDialog)
 {
-    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.5);
-                            z-index:1000; display:flex; align-items:center; justify-content:center; padding:16px;">
-        <div style="background:#FFFFFF; border-radius:20px; padding:24px;
-                                width:100%; max-width:420px;
-                                box-shadow:0 20px 60px rgba(0,0,0,0.20);">
-
-            <MudText Typo="Typo.h6" Style="font-weight:700; color:#1A237E; margin-bottom:4px;">
-                Review Appeal
-            </MudText>
-            <MudText Style="font-size:12px; color:#546E7A; margin-bottom:16px;">
-                Violation: <strong>@_reviewingViolationType</strong>
-            </MudText>
-
-            <MudSelect @bind-Value="_appealReviewStatus"
-                       Label="Decision *"
-                       Variant="Variant.Outlined"
-                       Style="margin-bottom:14px;">
-                <MudSelectItem Value="@("Approved")">Approve Appeal</MudSelectItem>
-                <MudSelectItem Value="@("Rejected")">Reject Appeal</MudSelectItem>
-            </MudSelect>
-
-            <MudTextField @bind-Value="_appealRemarks"
-                          Label="Remarks"
-                          Variant="Variant.Outlined"
-                          Lines="3"
-                          Placeholder="Add your remarks..."
-                          Style="margin-bottom:16px;" />
-
-            <div style="display:flex; gap:10px;">
-                <MudButton Variant="Variant.Outlined"
-                           FullWidth="true"
-                           OnClick="CloseAppealDialog"
-                           Style="border-color:#90A4AE; color:#546E7A; text-transform:none; border-radius:10px;">
-                    Cancel
-                </MudButton>
-                <MudButton Variant="Variant.Filled"
-                           FullWidth="true"
-                           Disabled="_isReviewing"
-                           OnClick="SubmitAppealReview"
-                           Style="background:#0288D1; color:#FFFFFF; text-transform:none; border-radius:10px;
-                                      box-shadow:0 4px 8px rgba(2,136,209,0.25);">
-                    @(_isReviewing ? "Submitting…" : "Submit")
-                </MudButton>
-            </div>
-        </div>
-    </div>
+    <div class="dialog-backdrop"><section class="action-dialog"><div class="dialog-heading"><div class="dialog-icon amber"><MudIcon Icon="@Icons.Material.Filled.Gavel" /></div><div><h2>Review appeal</h2><p>@_reviewingViolationType</p></div></div>
+        <MudSelect @bind-Value="_appealReviewStatus" Label="Decision" Variant="Variant.Outlined" Margin="Margin.Dense"><MudSelectItem Value="@("Approved")">Approve appeal</MudSelectItem><MudSelectItem Value="@("Rejected")">Reject appeal</MudSelectItem></MudSelect>
+        <MudTextField @bind-Value="_appealRemarks" Label="Remarks" Variant="Variant.Outlined" Lines="3" Margin="Margin.Dense" />
+        <div class="dialog-actions"><MudButton Variant="Variant.Text" OnClick="CloseAppealDialog">Cancel</MudButton><MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_isReviewing" OnClick="SubmitAppealReview">Save decision</MudButton></div>
+    </section></div>
 }
-
-@* ══════════ DELETE CONFIRM DIALOG ══════════ *@
 @if (_showDeleteConfirm)
 {
-    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.5);
-                            z-index:1000; display:flex; align-items:center; justify-content:center; padding:16px;">
-        <div style="background:#FFFFFF; border-radius:20px; padding:24px;
-                                width:100%; max-width:360px;
-                                box-shadow:0 20px 60px rgba(0,0,0,0.20);">
-
-            <div style="text-align:center; margin-bottom:16px;">
-                <MudIcon Icon="@Icons.Material.Filled.Warning"
-                         Style="color:#E53935; font-size:48px;" />
-                <MudText Typo="Typo.h6" Style="font-weight:700; color:#1A237E; margin-top:8px;">
-                    Confirm Delete
-                </MudText>
-                <MudText Style="font-size:13px; color:#546E7A; margin-top:6px;">
-                    @_deleteConfirmMessage
-                </MudText>
-            </div>
-
-            <div style="display:flex; gap:10px;">
-                <MudButton Variant="Variant.Outlined"
-                           FullWidth="true"
-                           OnClick="() => _showDeleteConfirm = false"
-                           Style="border-color:#90A4AE; color:#546E7A; text-transform:none; border-radius:10px;">
-                    Cancel
-                </MudButton>
-                <MudButton Variant="Variant.Filled"
-                           FullWidth="true"
-                           Disabled="_isDeleting"
-                           OnClick="ExecuteDelete"
-                           Style="background:#E53935; color:#FFFFFF; text-transform:none; border-radius:10px;">
-                    @(_isDeleting ? "Deleting…" : "Delete")
-                </MudButton>
-            </div>
-        </div>
-    </div>
+    <div class="dialog-backdrop"><section class="action-dialog confirm-dialog"><div class="dialog-icon red"><MudIcon Icon="@Icons.Material.Filled.DeleteOutline" /></div><h2>Confirm deletion</h2><p>@_deleteConfirmMessage</p><div class="dialog-actions"><MudButton Variant="Variant.Text" OnClick="@(()=>_showDeleteConfirm=false)">Cancel</MudButton><MudButton Variant="Variant.Filled" Color="Color.Error" Disabled="_isDeleting" OnClick="ExecuteDelete">Delete</MudButton></div></section></div>
 }
-
-@* ══════════ LOGOUT CONFIRM DIALOG ══════════ *@
 @if (_showLogoutDialog)
 {
-    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.5);
-                        z-index:1000; display:flex; align-items:center; justify-content:center;
-                        padding:16px;">
-        <div style="background:#FFFFFF; border-radius:20px; padding:24px;
-                            width:100%; max-width:360px;
-                            box-shadow:0 20px 60px rgba(0,0,0,0.20);">
-
-            <div style="display:flex; flex-direction:column; align-items:center;
-                                text-align:center; margin-bottom:20px;">
-                <div style="width:52px; height:52px; border-radius:50%;
-                                    background:linear-gradient(135deg,#E1F5FE,#B3E5FC);
-                                    border:1px solid #81D4FA;
-                                    display:flex; align-items:center; justify-content:center;
-                                    margin-bottom:12px;
-                                    box-shadow:0 4px 8px rgba(2,136,209,0.15);">
-                    <MudIcon Icon="@Icons.Material.Filled.Logout"
-                             Style="color:#0288D1; font-size:26px;" />
-                </div>
-                <MudText Typo="Typo.h6"
-                         Style="font-weight:700; color:#1A237E; margin-bottom:4px;">
-                    Log Out?
-                </MudText>
-                <MudText Style="font-size:12px; color:#546E7A;">
-                    Are you sure you want to log out of your account?
-                </MudText>
-            </div>
-
-            <div style="display:flex; gap:10px;">
-                <MudButton Variant="Variant.Outlined"
-                           FullWidth="true"
-                           OnClick="CloseLogoutDialog"
-                           Style="border-color:#90A4AE; color:#546E7A;
-                                          text-transform:none; border-radius:10px;">
-                    Cancel
-                </MudButton>
-                <MudButton Variant="Variant.Filled"
-                           FullWidth="true"
-                           OnClick="ConfirmLogout"
-                           Style="background:#0288D1; color:#FFFFFF;
-                                          text-transform:none; font-weight:600;
-                                          border-radius:10px;
-                                          box-shadow:0 4px 8px rgba(2,136,209,0.25);">
-                    Log Out
-                </MudButton>
-            </div>
-
-        </div>
-    </div>
+    <div class="dialog-backdrop"><section class="action-dialog confirm-dialog"><div class="dialog-icon blue"><MudIcon Icon="@Icons.Material.Filled.Logout" /></div><h2>Sign out?</h2><p>Are you sure you want to sign out of the SAO workspace?</p><div class="dialog-actions"><MudButton Variant="Variant.Text" OnClick="CloseLogoutDialog">Stay</MudButton><MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ConfirmLogout">Sign out</MudButton></div></section></div>
 }
 
-
 <style>
-    .sao-main-content { padding-left:232px !important; padding-bottom:24px !important; }
-    .sao-navigation {
-        position:fixed; z-index:300; left:0; top:64px; bottom:0; width:220px;
-        display:flex; flex-direction:column; align-items:stretch; gap:6px;
-        padding:22px 12px; background:#fff; border-right:1px solid #e7ebf2;
-        box-shadow:2px 0 16px rgba(28,45,72,.04);
+    .sao-app { min-height:100vh; background:#f3f5f9; color:#172033; }
+    .sao-sidebar { position:fixed; z-index:30; inset:0 auto 0 0; width:252px; display:flex; flex-direction:column; background:#111d35; color:#d9e2f0; padding:22px 14px 14px; }
+    .brand-lockup { display:flex; align-items:center; gap:12px; padding:5px 10px 26px; border-bottom:1px solid rgba(255,255,255,.09); }
+    .brand-symbol { width:38px; height:38px; border-radius:11px; display:grid; place-items:center; background:#2563eb; color:#fff; font-size:21px; }
+    .brand-lockup strong { display:block; color:#fff; font-size:1.12rem; letter-spacing:.04em; line-height:1.15; }
+    .brand-lockup span { display:block; color:#8391a9; font-size:.57rem; letter-spacing:.12em; margin-top:4px; }
+    .workspace-label { color:#7888a3; font-size:.64rem; font-weight:800; letter-spacing:.16em; padding:24px 12px 9px; }
+    .side-nav { display:flex; flex-direction:column; gap:4px; }
+    .side-nav button { color:#aab6c8; transition:all .15s ease; }
+    .side-nav button:hover { background:rgba(255,255,255,.07)!important; color:#fff; }
+    .side-nav button span { color:inherit!important; font-size:.87rem!important; font-weight:600!important; }
+    .side-nav button .mud-icon-root { color:inherit!important; }
+    .sidebar-foot { margin-top:auto; display:flex; align-items:center; gap:10px; padding:14px 7px 4px; border-top:1px solid rgba(255,255,255,.09); }
+    .user-avatar { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:#fff; background:#334a70; font-size:.72rem; font-weight:800; }
+    .user-identity { flex:1; min-width:0; }
+    .user-identity strong,.user-identity span { display:block; }
+    .user-identity strong { color:#edf3fb; font-size:.78rem; }
+    .user-identity span { color:#8998b0; font-size:.68rem; margin-top:2px; }
+    .sidebar-logout { color:#aab6c8; }
+    .sao-main { margin-left:252px; min-height:100vh; padding:0!important; }
+    .topbar { height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 30px; background:#fff; border-bottom:1px solid #e5e9f0; }
+    .breadcrumb { display:flex; gap:8px; align-items:center; color:#8a94a6; font-size:.83rem; }
+    .breadcrumb .mud-icon-root { font-size:17px; }
+    .breadcrumb strong { color:#25314a; font-weight:700; }
+    .topbar-right { display:flex; align-items:center; gap:9px; color:#657187; font-size:.78rem; }
+    .status-dot { width:8px; height:8px; border-radius:50%; background:#20a875; box-shadow:0 0 0 3px #e4f6ee; }
+    .mobile-logout { display:none; }
+    .page-content { max-width:none; padding:26px 30px 40px; }
+    .page-intro { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin-bottom:20px; }
+    .eyebrow { margin:0 0 5px; color:#63728a; font-size:.66rem; font-weight:800; letter-spacing:.15em; }
+    .page-intro h1 { margin:0; color:#172033; font-size:1.65rem; font-weight:760; letter-spacing:-.035em; }
+    .intro-copy { color:#7b8799; margin:5px 0 0; font-size:.87rem; }
+    .metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
+    .metric-card { display:flex; align-items:center; gap:13px; padding:16px 18px; min-height:88px; border:1px solid #e3e8ef; border-radius:12px; background:#fff; box-shadow:0 2px 7px rgba(20,34,59,.025); }
+    .metric-icon { width:40px; height:40px; display:grid; place-items:center; border-radius:10px; }
+    .metric-icon .mud-icon-root { font-size:21px; }
+    .metric-icon.blue,.dialog-icon.blue { background:#eaf1ff; color:#2c60d7; }
+    .metric-icon.amber,.dialog-icon.amber { background:#fff4df; color:#b8780c; }
+    .metric-icon.green,.dialog-icon.green { background:#e7f7ef; color:#178255; }
+    .metric-icon.red,.dialog-icon.red { background:#ffeded; color:#d54242; }
+    .metric-card span { display:block; color:#7a8799; font-size:.75rem; }
+    .metric-card strong { display:block; color:#1b2942; font-size:1.48rem; line-height:1.15; margin-top:4px; }
+    .overview-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .panel { min-width:0; background:#fff; border:1px solid #e3e8ef; border-radius:13px; padding:18px 20px; box-shadow:0 2px 7px rgba(20,34,59,.025); }
+    .panel-heading,.table-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:13px; }
+    .panel-heading h2,.table-toolbar h2,.case-actions h2 { margin:0; color:#1b2942; font-size:.96rem; font-weight:750; }
+    .panel-heading p,.table-toolbar p,.case-actions p { color:#8792a2; font-size:.75rem; margin:3px 0 0; }
+    .panel-heading-icon { color:#8c9ab0; font-size:20px; }
+    .bar-row { display:flex; align-items:center; gap:11px; margin:11px 0; }
+    .severity-pill { min-width:78px; text-align:center; }
+    .bar-track { flex:1; height:8px; border-radius:10px; background:#edf0f4; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:10px; }
+    .bar-row > strong { width:24px; text-align:right; color:#46536a; font-size:.78rem; }
+    .type-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #f0f2f6; font-size:.83rem; }
+    .type-row:last-child { border-bottom:0; }
+    .type-dot { width:7px; height:7px; border-radius:50%; background:#4b75dd; }
+    .type-name { flex:1; color:#46536a; }
+    .type-row strong { color:#26344e; font-size:.78rem; }
+    .panel { margin-bottom:14px; }
+    .table-toolbar { margin-bottom:12px; }
+    .table-search { width:min(340px,45%); }
+    .table-scroll { width:100%; overflow:auto; }
+    .svs-table { width:100%; border-collapse:collapse; text-align:left; font-size:.8rem; }
+    .svs-table thead th { color:#7b8799; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; font-weight:750; background:#f8f9fb; padding:10px 12px; border-bottom:1px solid #e9edf2; white-space:nowrap; }
+    .svs-table tbody td { color:#47546a; padding:11px 12px; border-bottom:1px solid #edf0f4; vertical-align:middle; }
+    .svs-table tbody tr:last-child td { border-bottom:0; }
+    .svs-table tbody tr:hover { background:#fbfcfe; }
+    .svs-table td strong { display:block; color:#27354d; font-weight:700; }
+    .cell-sub { display:block; max-width:280px; overflow:hidden; color:#8a95a5; font-size:.72rem; text-overflow:ellipsis; white-space:nowrap; margin-top:3px; }
+    .row-actions { display:flex; flex-wrap:nowrap; gap:5px; align-items:center; }
+    .row-actions .mud-button-root { min-width:0; padding:3px 8px; font-size:.7rem; }
+    .appeal-reason { max-width:340px; }
+    .compact-empty { display:flex; min-height:100px; align-items:center; justify-content:center; text-align:center; color:#8b95a4; font-size:.82rem; padding:18px; }
+    .empty-state { display:flex; min-height:150px; align-items:center; justify-content:center; flex-direction:column; gap:5px; color:#738096; }
+    .empty-state strong { color:#33415a; font-size:.88rem; margin-top:4px; }
+    .empty-state span { color:#8b95a4; font-size:.78rem; }
+    .empty-check { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; background:#eaf7ef; color:#20845b; }
+    .dismissal-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+    .count-badge { display:grid; place-items:center; min-width:27px; height:27px; padding:0 8px; border-radius:20px; font-size:.72rem; font-weight:800; }
+    .count-badge.warning { background:#fff3dc; color:#ad720f; }
+    .count-badge.neutral { background:#edf0f4; color:#667287; }
+    .compact-list { margin-top:3px; }
+    .person-row { display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid #edf0f4; }
+    .person-avatar,.student-avatar { display:grid; flex:0 0 34px; width:34px; height:34px; border-radius:50%; place-items:center; overflow:hidden; background:#eaf1ff; color:#3465cf; font-weight:800; font-size:.77rem; }
+    .person-avatar img { width:100%; height:100%; object-fit:cover; }
+    .person-avatar.muted { background:#eef0f3; color:#788397; }
+    .person-data { flex:1; min-width:120px; }
+    .person-data strong,.person-data span { display:block; }
+    .person-data strong { color:#2d3b54; font-size:.8rem; }
+    .person-data span { color:#8b95a4; font-size:.69rem; margin-top:3px; }
+    .search-panel { display:flex; align-items:center; gap:10px; max-width:680px; margin-bottom:14px; }
+    .search-panel .mud-input-control { flex:1; }
+    .case-grid { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:14px; align-items:start; }
+    .case-header { display:flex; align-items:center; gap:11px; padding-bottom:13px; border-bottom:1px solid #edf0f4; }
+    .student-avatar { width:42px; height:42px; flex-basis:42px; }
+    .case-person { flex:1; min-width:0; }
+    .case-person h2 { margin:0; color:#1b2942; font-size:1rem; }
+    .case-person p { margin:3px 0 0; color:#8792a2; font-size:.76rem; }
+    .case-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:14px 0; border-bottom:1px solid #edf0f4; }
+    .case-stats span,.case-stats strong { display:block; }
+    .case-stats span { color:#8590a0; font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; }
+    .case-stats strong { color:#293750; font-size:.82rem; margin-top:5px; overflow-wrap:anywhere; }
+    .case-summary h3 { color:#34415a; font-size:.84rem; margin:14px 0 8px; }
+    .case-actions { display:flex; flex-direction:column; gap:9px; }
+    .case-actions p { margin-bottom:6px; }
+    .search-panel { max-width:none; }
+    .inline-search { display:flex; align-items:center; gap:8px; }
+    .inline-search .mud-input-control { min-width:230px; }
+    .dialog-backdrop { position:fixed; z-index:1000; inset:0; display:grid; place-items:center; padding:18px; background:rgba(15,23,42,.48); backdrop-filter:blur(3px); }
+    .action-dialog { width:min(480px,100%); max-height:90vh; overflow:auto; display:flex; flex-direction:column; gap:11px; background:#fff; border-radius:16px; border:1px solid #e7ebf1; box-shadow:0 24px 70px rgba(10,20,40,.22); padding:22px; }
+    .dialog-heading { display:flex; align-items:center; gap:11px; margin-bottom:4px; }
+    .dialog-heading h2,.confirm-dialog h2 { margin:0; color:#202d44; font-size:1.05rem; }
+    .dialog-heading p,.confirm-dialog p { margin:3px 0 0; color:#818c9d; font-size:.8rem; }
+    .dialog-icon { display:grid; place-items:center; width:38px; height:38px; flex:0 0 38px; border-radius:11px; }
+    .confirm-dialog { text-align:center; align-items:center; max-width:380px; }
+    .confirm-dialog .dialog-icon { width:45px; height:45px; }
+    .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:7px; }
+    @@media (max-width:1100px) {
+        .page-content { padding:22px 20px 32px; }
+        .overview-grid,.dismissal-grid { grid-template-columns:1fr; }
+        .case-grid { grid-template-columns:minmax(0,1fr) 230px; }
     }
-    .sao-navigation button { flex:0 0 auto !important; width:100% !important; flex-direction:row !important; justify-content:flex-start !important; }
-    @@media (max-width: 820px) {
-        .sao-main-content { padding-left:0 !important; padding-bottom:88px !important; }
-        .sao-navigation {
-            left:0; right:0; top:auto; bottom:0; width:auto; height:72px;
-            flex-direction:row; align-items:center; gap:2px; padding:6px 4px;
-            overflow-x:auto; border-right:0; border-top:1px solid #e7ebf2;
-            box-shadow:0 -4px 18px rgba(28,45,72,.08);
-        }
-        .sao-navigation button {
-            flex:1 0 72px !important; width:auto !important; min-width:72px;
-            flex-direction:column !important; justify-content:center !important;
-            gap:3px !important; padding:5px 4px !important; height:56px; text-align:center !important;
-        }
+    @@media (max-width:800px) {
+        .sao-sidebar { inset:auto 0 0; width:auto; height:68px; padding:4px 8px; flex-direction:row; align-items:center; background:#111d35; }
+        .brand-lockup,.workspace-label,.sidebar-foot { display:none; }
+        .side-nav { width:100%; flex-direction:row; overflow-x:auto; gap:4px; }
+        .side-nav button { flex:0 0 92px!important; width:92px!important; min-height:54px!important; padding:5px!important; flex-direction:column!important; justify-content:center!important; gap:3px!important; }
+        .side-nav button span { font-size:.61rem!important; }
+        .sao-main { margin-left:0; padding-bottom:78px!important; }
+        .topbar { height:54px; padding:0 14px; }
+        .page-content { padding:18px 12px 24px; }
+        .page-intro { align-items:flex-start; }
+        .metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .case-grid { grid-template-columns:1fr; }
+        .case-actions { display:grid; grid-template-columns:1fr; }
+        .search-panel { align-items:stretch; }
     }
-
-    .sao-main-content > div { max-width:none !important; padding:22px 28px 18px !important; }
-    .sao-main-content div[style*="padding:48px"] { padding:22px !important; }
-    .sao-main-content div[style*="padding:40px"] { padding:18px !important; }
-    @@media (max-width:820px) {
-        .sao-main-content > div { padding:16px 12px !important; }
+    @@media (max-width:560px) {
+        .metric-grid { gap:8px; }
+        .metric-card { padding:12px; min-height:76px; gap:9px; }
+        .metric-icon { width:34px; height:34px; }
+        .metric-card span { font-size:.66rem; }
+        .metric-card strong { font-size:1.25rem; }
+        .page-intro { flex-direction:column; align-items:stretch; }
+        .page-intro h1 { font-size:1.4rem; }
+        .page-intro > .mud-button-root { align-self:flex-start; }
+        .panel { padding:14px 12px; }
+        .table-toolbar { align-items:flex-start; flex-direction:column; }
+        .table-search { width:100%; }
+        .svs-table { min-width:650px; }
+        .person-row { flex-wrap:wrap; }
+        .person-data { flex-basis:calc(100% - 54px); }
+        .row-actions { margin-left:44px; }
+        .search-panel { flex-direction:column; max-width:none; }
+        .search-panel .mud-input-control { width:100%; }
+        .case-stats { grid-template-columns:1fr 1fr; }
+        .inline-search { width:100%; }
+        .inline-search .mud-input-control { min-width:0; flex:1; }
     }
 </style>
 
