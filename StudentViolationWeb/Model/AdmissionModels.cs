@@ -19,6 +19,8 @@ public sealed class AdmissionRegistrationRequest
     public string Email { get; set; } = "";
     public string Username { get; set; } = "";
     public string RequestStatus { get; set; } = "";
+    public string Course { get; set; } = "";
+    public string Year { get; set; } = "";
 }
 
 public sealed class AdmissionClearanceResponse
