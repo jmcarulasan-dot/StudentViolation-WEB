@@ -143,7 +143,7 @@
                         <MudTable Items="_requests" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Class="data-table">
                             <HeaderContent><MudTh>Student</MudTh><MudTh>Student number</MudTh><MudTh>Account details</MudTh><MudTh>Status</MudTh><MudTh>Decision</MudTh></HeaderContent>
                             <RowTemplate>
-                                <MudTd DataLabel="Student"><strong>@context.FirstName @context.LastName</strong></MudTd>
+                                <MudTd DataLabel="Student"><strong>@context.FirstName @context.LastName</strong><small class="table-subline">@context.Course · Year @context.Year</small></MudTd>
                                 <MudTd DataLabel="Student number">@context.StudentNo</MudTd>
                                 <MudTd DataLabel="Account details"><span>@context.Username</span><small class="table-subline">@context.Email</small></MudTd>
                                 <MudTd DataLabel="Status"><MudChip T="string" Size="Size.Small" Color="@RequestColor(context.RequestStatus)" Variant="Variant.Outlined">@context.RequestStatus</MudChip></MudTd>
