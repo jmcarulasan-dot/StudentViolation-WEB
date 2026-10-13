@@ -406,8 +406,8 @@
     private AdmissionClearanceResponse? _clearance;
     private AdmissionEnrollmentForm _form = new();
     private readonly Dictionary<string, string> _enrollmentErrors = new(StringComparer.OrdinalIgnoreCase);
-    private List<string> CourseOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Course?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList()!;
-    private List<string> YearOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Year?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList()!;
+    private List<string> CourseOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Course?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+    private List<string> YearOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Year?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
 
     private int PendingCount => _requests?.Count(x => x.RequestStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase)) ?? 0;
     private string SectionTitle => _section switch { "requests" => "Registration requests", "enrollments" => "Enrollment records", "clearance" => "Student clearance", _ => "Admissions overview" };
