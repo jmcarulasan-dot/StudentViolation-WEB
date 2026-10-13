@@ -170,10 +170,10 @@
                             </div>
                             <MudTextField @bind-Value="_form.Email" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.Email))" Label="Email address" Placeholder="name@example.com" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Email))" ErrorText="@EnrollmentError(nameof(_form.Email))" />
                             <div class="form-pair course-pair">
-                                <MudSelect T="string" Value="_form.Course" ValueChanged="OnCourseChanged" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Course))" ErrorText="@EnrollmentError(nameof(_form.Course))" Disabled="@(!CourseOptions.Any())">
+                                <MudSelect T="string" Value="@_form.Course" ValueChanged="@(value => OnCourseChanged(value))" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Course))" ErrorText="@EnrollmentError(nameof(_form.Course))" Disabled="@(!CourseOptions.Any())">
                                     @foreach (var course in CourseOptions) { <MudSelectItem T="string" Value="@course">@course</MudSelectItem> }
                                 </MudSelect>
-                                <MudSelect T="string" Value="_form.Year" ValueChanged="OnYearChanged" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Year))" ErrorText="@EnrollmentError(nameof(_form.Year))" Disabled="@(!YearOptions.Any())">
+                                <MudSelect T="string" Value="@_form.Year" ValueChanged="@(value => OnYearChanged(value))" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Year))" ErrorText="@EnrollmentError(nameof(_form.Year))" Disabled="@(!YearOptions.Any())">
                                     @foreach (var year in YearOptions) { <MudSelectItem T="string" Value="@year">Year @year</MudSelectItem> }
                                 </MudSelect>
                             </div>
