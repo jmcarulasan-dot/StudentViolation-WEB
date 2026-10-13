@@ -163,10 +163,10 @@
                     <section class="panel enrollment-form">
                         <div class="panel-heading"><div><h2>New enrollment</h2><p>Add a student to the enrollment records.</p></div><span class="form-badge"><MudIcon Icon="@Icons.Material.Filled.PersonAdd" /></span></div>
                         <div class="form-fields">
-                            <MudTextField @bind-Value="_form.StudentNo" Label="Student number" Placeholder="ABC-00-0000-ABC123" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            <MudTextField @bind-Value="_form.StudentNo" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.StudentNo))" Label="Student number" Placeholder="ABC-00-0000-ABC123" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.StudentNo))" ErrorText="@EnrollmentError(nameof(_form.StudentNo))" />
                             <div class="form-pair">
-                                <MudTextField @bind-Value="_form.FirstName" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                                <MudTextField @bind-Value="_form.LastName" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                                <MudTextField @bind-Value="_form.FirstName" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.FirstName))" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.FirstName))" ErrorText="@EnrollmentError(nameof(_form.FirstName))" />
+                                <MudTextField @bind-Value="_form.LastName" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.LastName))" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.LastName))" ErrorText="@EnrollmentError(nameof(_form.LastName))" />
                             </div>
                             <MudTextField @bind-Value="_form.Email" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.Email))" Label="Gmail address" Placeholder="name@gmail.com" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Email))" ErrorText="@EnrollmentError(nameof(_form.Email))" />
                             <div class="form-pair course-pair">
