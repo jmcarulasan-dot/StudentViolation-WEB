@@ -406,8 +406,8 @@
     private AdmissionClearanceResponse? _clearance;
     private AdmissionEnrollmentForm _form = new();
     private readonly Dictionary<string, string> _enrollmentErrors = new(StringComparer.OrdinalIgnoreCase);
-    private List<string> CourseOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Course?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
-    private List<string> YearOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Year?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+    private static readonly List<string> CourseOptions = new() { "BSIT", "BSA", "BSBA", "BSCS", "BSHM" };
+    private static readonly List<string> YearOptions = new() { "1", "2", "3", "4" };
 
     private int PendingCount => _requests?.Count(x => x.RequestStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase)) ?? 0;
     private string SectionTitle => _section switch { "requests" => "Registration requests", "enrollments" => "Enrollment records", "clearance" => "Student clearance", _ => "Admissions overview" };
@@ -489,11 +489,11 @@
             _enrollmentErrors[nameof(_form.Email)] = "Enter a valid email address, such as name@example.com.";
 
         if (CourseOptions.Count == 0)
-            _enrollmentErrors[nameof(_form.Course)] = "No course options were returned from the enrollment database.";
+            _enrollmentErrors[nameof(_form.Course)] = "Select a course from the list.";
         else if (!CourseOptions.Contains(_form.Course, StringComparer.OrdinalIgnoreCase))
             _enrollmentErrors[nameof(_form.Course)] = "Select a course from the list.";
         if (YearOptions.Count == 0)
-            _enrollmentErrors[nameof(_form.Year)] = "No year options were returned from the enrollment database.";
+            _enrollmentErrors[nameof(_form.Year)] = "Select a year level from the list.";
         else if (!YearOptions.Contains(_form.Year, StringComparer.OrdinalIgnoreCase))
             _enrollmentErrors[nameof(_form.Year)] = "Select a year level from the list.";
 
