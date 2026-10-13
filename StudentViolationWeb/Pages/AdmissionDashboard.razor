@@ -168,12 +168,12 @@
                                 <MudTextField @bind-Value="_form.FirstName" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.FirstName))" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.FirstName))" ErrorText="@EnrollmentError(nameof(_form.FirstName))" />
                                 <MudTextField @bind-Value="_form.LastName" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.LastName))" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.LastName))" ErrorText="@EnrollmentError(nameof(_form.LastName))" />
                             </div>
-                            <MudTextField @bind-Value="_form.Email" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.Email))" Label="Gmail address" Placeholder="name@gmail.com" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Email))" ErrorText="@EnrollmentError(nameof(_form.Email))" />
+                            <MudTextField @bind-Value="_form.Email" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.Email))" Label="Email address" Placeholder="name@example.com" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Email))" ErrorText="@EnrollmentError(nameof(_form.Email))" />
                             <div class="form-pair course-pair">
-                                <MudSelect T="string" Value="_form.Course" ValueChanged="OnCourseChanged" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Course))" ErrorText="@EnrollmentError(nameof(_form.Course))">
+                                <MudSelect T="string" Value="_form.Course" ValueChanged="OnCourseChanged" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Course))" ErrorText="@EnrollmentError(nameof(_form.Course))" Disabled="@(!CourseOptions.Any())">
                                     @foreach (var course in CourseOptions) { <MudSelectItem T="string" Value="@course">@course</MudSelectItem> }
                                 </MudSelect>
-                                <MudSelect T="string" Value="_form.Year" ValueChanged="OnYearChanged" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Year))" ErrorText="@EnrollmentError(nameof(_form.Year))">
+                                <MudSelect T="string" Value="_form.Year" ValueChanged="OnYearChanged" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Year))" ErrorText="@EnrollmentError(nameof(_form.Year))" Disabled="@(!YearOptions.Any())">
                                     @foreach (var year in YearOptions) { <MudSelectItem T="string" Value="@year">Year @year</MudSelectItem> }
                                 </MudSelect>
                             </div>
@@ -406,8 +406,8 @@
     private AdmissionClearanceResponse? _clearance;
     private AdmissionEnrollmentForm _form = new();
     private readonly Dictionary<string, string> _enrollmentErrors = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly string[] CourseOptions = { "BSIT", "BSHM", "BSBA" };
-    private static readonly string[] YearOptions = { "1", "2", "3", "4" };
+    private List<string> CourseOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Course?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList()!;
+    private List<string> YearOptions => (_enrollments ?? new List<AdmissionEnrollment>()).Select(x => x.Year?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList()!;
 
     private int PendingCount => _requests?.Count(x => x.RequestStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase)) ?? 0;
     private string SectionTitle => _section switch { "requests" => "Registration requests", "enrollments" => "Enrollment records", "clearance" => "Student clearance", _ => "Admissions overview" };
@@ -484,13 +484,17 @@
             _enrollmentErrors[nameof(_form.LastName)] = "Last name is required.";
 
         if (string.IsNullOrWhiteSpace(_form.Email))
-            _enrollmentErrors[nameof(_form.Email)] = "Gmail address is required.";
-        else if (!Regex.IsMatch(_form.Email.Trim(), @"^[^@\s]+@gmail\.com$", RegexOptions.IgnoreCase))
-            _enrollmentErrors[nameof(_form.Email)] = "Enter a valid email ending in @gmail.com.";
+            _enrollmentErrors[nameof(_form.Email)] = "Email address is required.";
+        else if (!Regex.IsMatch(_form.Email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            _enrollmentErrors[nameof(_form.Email)] = "Enter a valid email address, such as name@example.com.";
 
-        if (!CourseOptions.Contains(_form.Course, StringComparer.OrdinalIgnoreCase))
+        if (CourseOptions.Count == 0)
+            _enrollmentErrors[nameof(_form.Course)] = "No course options were returned from the enrollment database.";
+        else if (!CourseOptions.Contains(_form.Course, StringComparer.OrdinalIgnoreCase))
             _enrollmentErrors[nameof(_form.Course)] = "Select a course from the list.";
-        if (!YearOptions.Contains(_form.Year, StringComparer.OrdinalIgnoreCase))
+        if (YearOptions.Count == 0)
+            _enrollmentErrors[nameof(_form.Year)] = "No year options were returned from the enrollment database.";
+        else if (!YearOptions.Contains(_form.Year, StringComparer.OrdinalIgnoreCase))
             _enrollmentErrors[nameof(_form.Year)] = "Select a year level from the list.";
 
         return _enrollmentErrors.Count == 0;
