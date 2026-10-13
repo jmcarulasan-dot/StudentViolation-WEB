@@ -1,5 +1,6 @@
 @page "/admission/dashboard"
 @using MudBlazor
+@using System.Text.RegularExpressions
 @using StudentViolationWeb.Data
 @using StudentViolationWeb.Model
 @using StudentViolationWeb.Model.Response
@@ -167,10 +168,14 @@
                                 <MudTextField @bind-Value="_form.FirstName" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                                 <MudTextField @bind-Value="_form.LastName" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                             </div>
-                            <MudTextField @bind-Value="_form.Email" Label="Email address" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            <MudTextField @bind-Value="_form.Email" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.Email))" Label="Gmail address" Placeholder="name@gmail.com" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Email))" ErrorText="@EnrollmentError(nameof(_form.Email))" />
                             <div class="form-pair course-pair">
-                                <MudTextField @bind-Value="_form.Course" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                                <MudTextField @bind-Value="_form.Year" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                                <MudSelect T="string" Value="_form.Course" ValueChanged="OnCourseChanged" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Course))" ErrorText="@EnrollmentError(nameof(_form.Course))">
+                                    @foreach (var course in CourseOptions) { <MudSelectItem T="string" Value="@course">@course</MudSelectItem> }
+                                </MudSelect>
+                                <MudSelect T="string" Value="_form.Year" ValueChanged="OnYearChanged" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Year))" ErrorText="@EnrollmentError(nameof(_form.Year))">
+                                    @foreach (var year in YearOptions) { <MudSelectItem T="string" Value="@year">Year @year</MudSelectItem> }
+                                </MudSelect>
                             </div>
                             <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary" Disabled="@_busy" OnClick="CreateEnrollment">
                                 @if (_busy) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> } Save enrollment
@@ -400,6 +405,9 @@
     private string _clearanceStudentNo = "";
     private AdmissionClearanceResponse? _clearance;
     private AdmissionEnrollmentForm _form = new();
+    private readonly Dictionary<string, string> _enrollmentErrors = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly string[] CourseOptions = { "BSIT", "BSHM", "BSBA" };
+    private static readonly string[] YearOptions = { "1", "2", "3", "4" };
 
     private int PendingCount => _requests?.Count(x => x.RequestStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase)) ?? 0;
     private string SectionTitle => _section switch { "requests" => "Registration requests", "enrollments" => "Enrollment records", "clearance" => "Student clearance", _ => "Admissions overview" };
@@ -445,18 +453,67 @@
         if (result.Status is >= 200 and < 300) await LoadAll();
     }
 
+    private bool HasEnrollmentError(string field) => _enrollmentErrors.ContainsKey(field);
+    private string? EnrollmentError(string field) => _enrollmentErrors.TryGetValue(field, out var message) ? message : null;
+    private void ClearEnrollmentError(string field) => _enrollmentErrors.Remove(field);
+
+    private void OnCourseChanged(string? value)
+    {
+        _form.Course = value ?? "";
+        ClearEnrollmentError(nameof(_form.Course));
+    }
+
+    private void OnYearChanged(string? value)
+    {
+        _form.Year = value ?? "";
+        ClearEnrollmentError(nameof(_form.Year));
+    }
+
+    private bool ValidateEnrollment()
+    {
+        _enrollmentErrors.Clear();
+
+        if (string.IsNullOrWhiteSpace(_form.StudentNo))
+            _enrollmentErrors[nameof(_form.StudentNo)] = "Student number is required.";
+        else if (!Regex.IsMatch(_form.StudentNo.Trim(), @"^[A-Za-z0-9]{3}-\d{2}-\d{4}-[A-Za-z0-9]{6}$"))
+            _enrollmentErrors[nameof(_form.StudentNo)] = "Use the format ABC-00-0000-ABC123.";
+
+        if (string.IsNullOrWhiteSpace(_form.FirstName))
+            _enrollmentErrors[nameof(_form.FirstName)] = "First name is required.";
+        if (string.IsNullOrWhiteSpace(_form.LastName))
+            _enrollmentErrors[nameof(_form.LastName)] = "Last name is required.";
+
+        if (string.IsNullOrWhiteSpace(_form.Email))
+            _enrollmentErrors[nameof(_form.Email)] = "Gmail address is required.";
+        else if (!Regex.IsMatch(_form.Email.Trim(), @"^[^@\s]+@gmail\.com$", RegexOptions.IgnoreCase))
+            _enrollmentErrors[nameof(_form.Email)] = "Enter a valid email ending in @gmail.com.";
+
+        if (!CourseOptions.Contains(_form.Course, StringComparer.OrdinalIgnoreCase))
+            _enrollmentErrors[nameof(_form.Course)] = "Select a course from the list.";
+        if (!YearOptions.Contains(_form.Year, StringComparer.OrdinalIgnoreCase))
+            _enrollmentErrors[nameof(_form.Year)] = "Select a year level from the list.";
+
+        return _enrollmentErrors.Count == 0;
+    }
+
     private async Task CreateEnrollment()
     {
-        if (new[] { _form.StudentNo, _form.FirstName, _form.LastName, _form.Email, _form.Course, _form.Year }.Any(string.IsNullOrWhiteSpace))
+        if (!ValidateEnrollment())
         {
-            Snackbar.Add("Complete all enrollment fields first.", Severity.Warning);
+            Snackbar.Add("Please correct the highlighted fields.", Severity.Warning);
             return;
         }
+
         _busy = true;
         var result = await AdmissionService.CreateEnrollmentAsync(_form);
         _busy = false;
         Snackbar.Add(result.Message ?? (result.Status == 200 ? "Enrollment saved." : "Unable to save enrollment."), result.Status == 200 ? Severity.Success : Severity.Error);
-        if (result.Status == 200) { _form = new(); await LoadAll(); }
+        if (result.Status == 200)
+        {
+            _form = new();
+            _enrollmentErrors.Clear();
+            await LoadAll();
+        }
     }
 
     private async Task CheckClearance()
