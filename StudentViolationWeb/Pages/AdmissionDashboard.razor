@@ -546,7 +546,7 @@
             return;
         }
         var studentNo = _clearanceStudentNo.Trim().ToUpperInvariant();
-        if (!Regex.IsMatch(studentNo, @"^[A-Z0-9]{3}-\\d{2}-\\d{4}-[A-Z0-9]{6}$"))
+        if (!Regex.IsMatch(studentNo, @"^[A-Z0-9]{3}-\d{2}-\d{4}-[A-Z0-9]{6}$"))
         {
             _clearance = new AdmissionClearanceResponse { Status = 400, Message = "Student number format is invalid. Use the format ABC-00-0000-ABC123." };
             return;
