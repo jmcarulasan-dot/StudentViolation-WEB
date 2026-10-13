@@ -243,7 +243,7 @@
     <div class="dialog-backdrop"><section class="action-dialog"><div class="dialog-heading"><div class="dialog-icon blue"><MudIcon Icon="@Icons.Material.Filled.Edit" /></div><div><h2>Edit account</h2><p>@_editUser.username</p></div></div>
         <MudTextField @bind-Value="_editRequest.FirstName" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" />
         <MudTextField @bind-Value="_editRequest.LastName" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" />
-        <MudTextField @bind-Value="_editRequest.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudTextField @bind-Value="_editRequest.Email" @bind-Value:after="ClearUserEmailError" Label="Email address" Placeholder="name@example.com" Variant="Variant.Outlined" Margin="Margin.Dense" Error="@(!string.IsNullOrWhiteSpace(_userEmailError))" ErrorText="@_userEmailError" />
         <MudTextField @bind-Value="_editRequest.ContactNumber" Label="Contact number" Variant="Variant.Outlined" Margin="Margin.Dense" />
         <MudTextField @bind-Value="_editRequest.Address" Label="Address" Variant="Variant.Outlined" Margin="Margin.Dense" />
         <MudSelect @bind-Value="_editRequest.Gender" Label="Gender" Variant="Variant.Outlined" Margin="Margin.Dense"><MudSelectItem Value="@("male")">Male</MudSelectItem><MudSelectItem Value="@("female")">Female</MudSelectItem></MudSelect>
@@ -467,6 +467,7 @@
     private SaoUserDetail? _editUser;
     private UpdateUserRequest _editRequest = new();
     private bool _showEditUser = false;
+    private string? _userEmailError;
     private bool _isSavingUser = false;
 
     // Tab 4 — Dismissals
@@ -701,16 +702,32 @@
                 Address = detail.Data?.address,
                 Gender = detail.Data?.gender
             };
+            _userEmailError = null;
             _showEditUser = true;
         }
         else Snackbar.Add(detail.Message ?? "Failed to load user.", Severity.Error);
     }
 
-    private void CloseEditUser() => _showEditUser = false;
+    private void ClearUserEmailError() => _userEmailError = null;
+
+    private void CloseEditUser()
+    {
+        _showEditUser = false;
+        _userEmailError = null;
+    }
 
     private async Task SaveUser()
     {
         if (_editUser == null) return;
+        _userEmailError = null;
+        if (string.IsNullOrWhiteSpace(_editRequest.Email) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(_editRequest.Email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        {
+            _userEmailError = string.IsNullOrWhiteSpace(_editRequest.Email)
+                ? "Email address is required."
+                : "Enter a valid email address, such as name@example.com.";
+            return;
+        }
         _isSavingUser = true;
         var result = await SaoService.UpdateUserAsync(_editUser.id, _editRequest);
         _isSavingUser = false;
