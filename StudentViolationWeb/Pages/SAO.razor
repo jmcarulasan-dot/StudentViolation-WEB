@@ -124,17 +124,38 @@
             {
                 <div class="page-intro"><div><p class="eyebrow">ACCOUNT DIRECTORY</p><h1>Accounts</h1><p class="intro-copy">Find and maintain student and guard account details.</p></div><MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="LoadUsersAsync">Refresh</MudButton></div>
                 <section class="panel">
-                    <div class="table-toolbar"><div><h2>System accounts</h2><p>@(_users?.Count ?? 0) accounts</p></div><MudTextField @bind-Value="_userSearch" Placeholder="Search name, username, or role" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Class="table-search" /></div>
+                    <div class="table-toolbar"><div><h2>System accounts</h2><p>@(_users?.Count ?? 0) accounts</p></div>
+                        <div class="account-search-wrap">
+                            <MudTextField Value="_userSearch" ValueChanged="OnUserSearchChanged" Immediate="true" Placeholder="Search name, student number, or role" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Class="table-search" />
+                            @if (!string.IsNullOrWhiteSpace(_userSearch) && _selectedUserId is null && !_isLoadingUsers)
+                            {
+                                var suggestions = GetUserSuggestions();
+                                @if (suggestions.Any())
+                                {
+                                    <div class="account-suggestions">
+                                        @foreach (var suggestion in suggestions)
+                                        {
+                                            <button type="button" class="account-suggestion" @onclick="() => SelectUserSuggestion(suggestion)">
+                                                <span class="suggestion-avatar">@(string.IsNullOrWhiteSpace(suggestion.name) ? "?" : suggestion.name.Trim()[0].ToString().ToUpperInvariant())</span>
+                                                <span class="suggestion-copy"><strong>@suggestion.name</strong><small>@(suggestion.student_no ?? suggestion.username) · @suggestion.role</small></span>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
                     @if (_isLoadingUsers) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                    else if (!string.IsNullOrWhiteSpace(_usersError)) { <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_usersError</MudAlert> }
                     else
                     {
-                        var users = _users?.Where(u => string.IsNullOrWhiteSpace(_userSearch) || (u.name?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true) || (u.username?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true) || (u.role?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true)).ToList();
+                        var users = _users?.Where(MatchesUserSearch).ToList();
                         @if (users?.Any() == true)
                         {
-                            <div class="table-scroll"><table class="svs-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Email</th><th>Actions</th></tr></thead><tbody>
+                            <div class="table-scroll"><table class="svs-table"><thead><tr><th>Name</th><th>Student number</th><th>Username</th><th>Role</th><th>Email</th><th>Actions</th></tr></thead><tbody>
                             @foreach (var u in users)
                             {
-                                <tr><td><strong>@u.name</strong></td><td>@u.username</td><td><span style="@RoleBadge(u.role)">@u.role</span></td><td>@u.email</td><td><div class="row-actions"><MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" title="Edit account" OnClick="() => OpenEditUser(u)" /><MudIconButton Icon="@Icons.Material.Filled.DeleteOutline" Color="Color.Error" title="Delete account" OnClick="() => ConfirmDeleteUser(u.id, u.name)" /></div></td></tr>
+                                <tr><td><div class="account-name-cell"><span class="account-avatar">@if (!string.IsNullOrWhiteSpace(u.profile_photo)){<img src="data:image/jpeg;base64,@u.profile_photo" alt="" />}else{@(string.IsNullOrWhiteSpace(u.name) ? "?" : u.name.Trim()[0].ToString().ToUpperInvariant())}</span><strong>@u.name</strong></div></td><td>@(u.student_no ?? "—")</td><td>@u.username</td><td><span style="@RoleBadge(u.role)">@u.role</span></td><td>@u.email</td><td><div class="row-actions"><MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" title="Edit account" OnClick="() => OpenEditUser(u)" /><MudIconButton Icon="@Icons.Material.Filled.DeleteOutline" Color="Color.Error" title="Delete account" OnClick="() => ConfirmDeleteUser(u.id, u.name)" /></div></td></tr>
                             }
                             </tbody></table></div>
                         }
@@ -183,7 +204,7 @@
                 {
                     <section class="case-grid">
                         <article class="panel case-summary">
-                            <div class="case-header"><div class="student-avatar"><MudIcon Icon="@Icons.Material.Filled.Person" /></div><div class="case-person"><h2>@_studentReport.name</h2><p>@_studentReport.student_no · @_studentReport.course · Year @_studentReport.year</p></div><MudChip T="string" Color="@LevelColor(_studentLevel?.ViolationLevel)">@(_studentLevel?.ViolationLevel ?? "Unknown") level</MudChip></div>
+                            <div class="case-header"><div class="student-avatar">@if (!string.IsNullOrWhiteSpace(_studentReport.profile_photo)){<img src="data:image/jpeg;base64,@_studentReport.profile_photo" alt="Student profile photo" />}else{<MudIcon Icon="@Icons.Material.Filled.Person" />}</div><div class="case-person"><h2>@_studentReport.name</h2><p>@_studentReport.student_no · @_studentReport.course · Year @_studentReport.year</p></div><MudChip T="string" Color="@LevelColor(_studentLevel?.ViolationLevel)">@(_studentLevel?.ViolationLevel ?? "Unknown") level</MudChip></div>
                             <div class="case-stats"><div><span>Active violations</span><strong>@(_studentLevel?.ActiveViolations ?? _studentReport.violation_count)</strong></div><div><span>Recommended action</span><strong>@(_studentLevel?.RecommendedAction ?? _studentReport.recommended_action)</strong></div><div><span>Email</span><strong>@_studentReport.email</strong></div></div>
                             <h3>Violation history</h3>
                             @if (_studentReport.violations?.Any() == true)
@@ -205,11 +226,12 @@
                 <div class="page-intro"><div><p class="eyebrow">SYSTEM RECORDS</p><h1>Audit history</h1><p class="intro-copy">Review recent administrative changes, with an optional student filter.</p></div></div>
                 <section class="panel"><div class="table-toolbar"><div><h2>Recent activity</h2><p>Latest 100 entries</p></div><div class="inline-search"><MudTextField @bind-Value="_auditStudentNo" Label="Student number (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" /><MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoadingAudit" OnClick="LoadAuditHistory">Search</MudButton></div></div>
                     @if (_isLoadingAudit) { <MudProgressLinear Indeterminate="true" Color="Color.Primary" /> }
+                    else if (!string.IsNullOrWhiteSpace(_auditError)) { <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_auditError</MudAlert> }
                     else if (_auditEntries?.Any() == true)
                     {
                         <div class="table-scroll"><table class="svs-table"><thead><tr><th>Time</th><th>Action</th><th>Student</th><th>Actor</th><th>Details</th></tr></thead><tbody>@foreach(var item in _auditEntries){<tr><td>@item.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</td><td><strong>@item.Action</strong></td><td>@(item.StudentNo ?? "—")</td><td>@item.ActorUsername <small class="cell-sub">@item.ActorRole</small></td><td>@(item.Remarks ?? $"{item.PreviousValue ?? "—"} → {item.NewValue ?? "—"}")</td></tr>}</tbody></table></div>
                     }
-                    else { <div class="compact-empty">No audit records found for this search.</div> }
+                    else { <div class="compact-empty">@(!string.IsNullOrWhiteSpace(_auditStudentNo) ? "No audit records match that student number." : "No audit events have been recorded yet. New SAO actions will appear here.")</div> }
                 </section>
             }
         </main>
@@ -306,6 +328,19 @@
     .type-row strong { color:#26344e; font-size:.78rem; }
     .panel { margin-bottom:14px; }
     .table-toolbar { margin-bottom:12px; }
+    .account-search-wrap { position:relative; width:min(380px,48%); z-index:5; }
+    .account-search-wrap .table-search { width:100%; }
+    .account-suggestions { position:absolute; inset:calc(100% + 4px) 0 auto; max-height:320px; overflow:auto; padding:5px; border:1px solid #dfe5ee; border-radius:10px; background:#fff; box-shadow:0 12px 30px #24334b22; }
+    .account-suggestion { display:flex; align-items:center; gap:10px; width:100%; padding:9px; border:0; border-radius:7px; background:#fff; text-align:left; cursor:pointer; }
+    .account-suggestion:hover { background:#f2f5fa; }
+    .suggestion-avatar,.account-avatar { display:grid; flex:none; width:32px; height:32px; place-items:center; overflow:hidden; border-radius:50%; color:#3558ca; background:#edf1fc; font-size:.74rem; font-weight:800; }
+    .suggestion-copy { display:flex; min-width:0; flex-direction:column; gap:2px; }
+    .suggestion-copy strong { overflow:hidden; color:#1d2b44; font-size:.76rem; text-overflow:ellipsis; white-space:nowrap; }
+    .suggestion-copy small { color:#788499; font-size:.65rem; }
+    .account-name-cell { display:flex; align-items:center; gap:8px; }
+    .account-avatar { width:28px; height:28px; }
+    .account-avatar img,.student-avatar img { width:100%; height:100%; object-fit:cover; }
+    .student-avatar { flex:0 0 52px; width:52px; height:52px; }
     .table-search { width:min(340px,45%); }
     .table-scroll { width:100%; overflow:auto; }
     .svs-table { width:100%; border-collapse:collapse; text-align:left; font-size:.8rem; }
@@ -427,6 +462,8 @@
     private List<SaoUserItem>? _users;
     private bool _isLoadingUsers = false;
     private string _userSearch = string.Empty;
+    private int? _selectedUserId;
+    private string? _usersError;
     private SaoUserDetail? _editUser;
     private UpdateUserRequest _editRequest = new();
     private bool _showEditUser = false;
@@ -462,6 +499,7 @@
     private List<SaoAuditEntry>? _auditEntries;
     private bool _isLoadingStudent;
     private bool _isLoadingAudit;
+    private string? _auditError;
     private bool _studentActionBusy;
 
     protected override async Task OnInitializedAsync()
@@ -512,9 +550,48 @@
     private async Task LoadUsersAsync()
     {
         _isLoadingUsers = true;
+        _usersError = null;
         var result = await SaoService.GetAllUsersAsync();
-        if (result.Status == 200) _users = result.Data?.Where(u => !string.Equals(u.role, "Guidance", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (result.Status == 200)
+        {
+            _users = result.Data?.Where(u => !string.Equals(u.role, "Guidance", StringComparison.OrdinalIgnoreCase)).ToList() ?? new List<SaoUserItem>();
+        }
+        else
+        {
+            _users = new List<SaoUserItem>();
+            _usersError = result.Message ?? "Accounts could not be loaded.";
+        }
         _isLoadingUsers = false;
+    }
+
+    private bool MatchesUserSearch(SaoUserItem user)
+    {
+        if (_selectedUserId.HasValue) return user.id == _selectedUserId.Value;
+        if (string.IsNullOrWhiteSpace(_userSearch)) return true;
+        return new[] { user.name, user.username, user.role, user.student_no, user.email }
+            .Any(value => value?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true);
+    }
+
+    private IEnumerable<SaoUserItem> GetUserSuggestions()
+    {
+        if (string.IsNullOrWhiteSpace(_userSearch)) return Enumerable.Empty<SaoUserItem>();
+        return (_users ?? new List<SaoUserItem>())
+            .Where(user => new[] { user.name, user.username, user.role, user.student_no, user.email }
+                .Any(value => value?.Contains(_userSearch, StringComparison.OrdinalIgnoreCase) == true))
+            .OrderBy(user => user.name)
+            .Take(7);
+    }
+
+    private void OnUserSearchChanged(string? value)
+    {
+        _userSearch = value ?? string.Empty;
+        _selectedUserId = null;
+    }
+
+    private void SelectUserSuggestion(SaoUserItem user)
+    {
+        _selectedUserId = user.id;
+        _userSearch = user.name ?? user.student_no ?? user.username ?? string.Empty;
     }
 
     private async Task LoadDismissalsAsync()
@@ -722,10 +799,17 @@
     private async Task LoadAuditHistory()
     {
         _isLoadingAudit = true;
+        _auditError = null;
         var result = await SaoOperationsService.GetAuditAsync(_auditStudentNo);
-        _auditEntries = result.Data ?? new List<SaoAuditEntry>();
         _isLoadingAudit = false;
-        if (result.Status >= 400) Snackbar.Add(result.Message ?? "Audit history could not be loaded.", Severity.Error);
+        if (result.Status >= 400)
+        {
+            _auditEntries = null;
+            _auditError = result.Message ?? "Audit history could not be loaded.";
+            Snackbar.Add(_auditError, Severity.Error);
+            return;
+        }
+        _auditEntries = result.Data ?? new List<SaoAuditEntry>();
     }
 
     private async Task ApplyStudentAction(string action)
