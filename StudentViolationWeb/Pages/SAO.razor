@@ -126,7 +126,7 @@
                 <section class="panel">
                     <div class="table-toolbar"><div><h2>System accounts</h2><p>@(_users?.Count ?? 0) accounts</p></div>
                         <div class="account-search-wrap">
-                            <MudTextField Value="@_userSearch" ValueChanged="@(value => OnUserSearchChanged(value))" Immediate="true" Placeholder="Search name, student number, or role" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Class="table-search" />
+                            <MudTextField T="string" Value="@_userSearch" ValueChanged="@((string value) => OnUserSearchChanged(value))" Immediate="true" Placeholder="Search name, student number, or role" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" Class="table-search" />
                             @if (!string.IsNullOrWhiteSpace(_userSearch) && _selectedUserId is null && !_isLoadingUsers)
                             {
                                 var suggestions = GetUserSuggestions();
