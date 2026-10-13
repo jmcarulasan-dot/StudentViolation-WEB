@@ -72,7 +72,7 @@ public class AuthService
                 DateOfBirth = register.DateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty,
                 register.Gender,
                 register.Address,
-                Number = register.Number,
+                ContactNumber = register.Number,
                 register.Role,
                 register.StudentNo,
                 register.Course,
