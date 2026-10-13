@@ -249,6 +249,12 @@
             }
             else
             {
+                if (result.Status == 423 ||
+                    result.Message?.Contains("Sign in again", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    loginFlow = null;
+                    authCode = "";
+                }
                 Snackbar.Add(result.Message ?? "Authenticator verification failed.", Severity.Error);
             }
         }
