@@ -213,17 +213,28 @@
                     <section class="panel clearance-panel">
                         <div class="panel-heading"><div><h2>Check student clearance</h2><p>Check eligibility before recording the student’s clearance signature.</p></div></div>
                         <div class="clearance-form">
-                            <MudTextField @bind-Value="_clearanceStudentNo" Label="Student number" Placeholder="Enter student number" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
+                            <MudTextField T="string" Value="@_clearanceStudentNo" ValueChanged="OnClearanceStudentNoChanged" Label="Student number" Placeholder="ABC-00-0000-ABC123" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_busy" OnClick="CheckClearance" StartIcon="@Icons.Material.Filled.Search">Check status</MudButton>
                         </div>
                         @if (_clearance is not null)
                         {
                             <div class="clearance-result">
-                                <MudAlert Severity="@(_clearance.CanSign ? Severity.Success : Severity.Warning)" Variant="Variant.Outlined">
-                                    @(_clearance.CanSign ? "Eligible for clearance signing" : "Not eligible for clearance signing")
-                                </MudAlert>
-                                @if (!string.IsNullOrWhiteSpace(_clearance.Message)) { <p class="clearance-message">@_clearance.Message</p> }
-                                <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!_clearance.CanSign || _busy)" OnClick="SignClearance" StartIcon="@Icons.Material.Filled.Draw">Record clearance signature</MudButton>
+                                @if (_clearance.Status == 404)
+                                {
+                                    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">Student not found. Check the student number and try again.</MudAlert>
+                                }
+                                else if (_clearance.Status == 400)
+                                {
+                                    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_clearance.Message</MudAlert>
+                                }
+                                else
+                                {
+                                    <MudAlert Severity="@(_clearance.CanSign ? Severity.Success : Severity.Warning)" Variant="Variant.Outlined">
+                                        @(_clearance.CanSign ? "Eligible for clearance signing" : "Not eligible for clearance signing")
+                                    </MudAlert>
+                                    @if (!string.IsNullOrWhiteSpace(_clearance.Message)) { <p class="clearance-message">@_clearance.Message</p> }
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!_clearance.CanSign || _busy)" OnClick="SignClearance" StartIcon="@Icons.Material.Filled.Draw">Record clearance signature</MudButton>
+                                }
                             </div>
                         }
                     </section>
@@ -520,13 +531,32 @@
         }
     }
 
+    private void OnClearanceStudentNoChanged(string? value)
+    {
+        _clearanceStudentNo = value ?? "";
+        _clearance = null;
+    }
+
     private async Task CheckClearance()
     {
-        if (string.IsNullOrWhiteSpace(_clearanceStudentNo)) { Snackbar.Add("Enter a student number.", Severity.Warning); return; }
+        _clearance = null;
+        if (string.IsNullOrWhiteSpace(_clearanceStudentNo))
+        {
+            Snackbar.Add("Enter a student number.", Severity.Warning);
+            return;
+        }
+        var studentNo = _clearanceStudentNo.Trim().ToUpperInvariant();
+        if (!Regex.IsMatch(studentNo, @"^[A-Z0-9]{3}-\\d{2}-\\d{4}-[A-Z0-9]{6}$"))
+        {
+            _clearance = new AdmissionClearanceResponse { Status = 400, Message = "Student number format is invalid. Use the format ABC-00-0000-ABC123." };
+            return;
+        }
+
         _busy = true;
-        _clearance = await AdmissionService.CheckClearanceAsync(_clearanceStudentNo.Trim());
+        _clearance = await AdmissionService.CheckClearanceAsync(studentNo);
         _busy = false;
-        if (_clearance.Status >= 400) Snackbar.Add(_clearance.Message ?? "Could not check clearance.", Severity.Error);
+        if (_clearance.Status >= 400 && _clearance.Status != 404)
+            Snackbar.Add(_clearance.Message ?? "Could not check clearance.", Severity.Error);
     }
 
     private async Task SignClearance()
