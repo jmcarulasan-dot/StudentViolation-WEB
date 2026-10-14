@@ -99,10 +99,26 @@ public class AuthService
         }
     }
 
+    public async Task SaveAccountUsernameAsync(string username)
+    {
+        await _localStorage.SetItemAsync("authUsername", username.Trim());
+    }
+
+    public async Task<string?> GetAccountUsernameAsync()
+    {
+        return await _localStorage.GetItemAsync<string>("authUsername");
+    }
+
+    public async Task<string?> GetAccountRoleAsync()
+    {
+        return await _localStorage.GetItemAsync<string>("authRole");
+    }
+
     public async Task LogoutAsync()
     {
         await _localStorage.RemoveItemAsync("authToken");
         await _localStorage.RemoveItemAsync("authRole");
+        await _localStorage.RemoveItemAsync("authUsername");
         _http.DefaultRequestHeaders.Authorization = null;
     }
 }
