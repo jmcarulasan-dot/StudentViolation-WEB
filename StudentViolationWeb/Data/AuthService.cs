@@ -17,27 +17,40 @@ public class AuthService
         _localStorage = localStorage;
     }
 
-    // POST /api/auth/login
+    // POST /api/auth/login. Do not persist a token before MFA verification.
     public async Task<LoginResponse> LoginAsync(LoginModel login)
     {
         try
         {
+            await LogoutAsync();
             var response = await _http.PostAsJsonAsync("api/auth/login", login);
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-            if (result?.Token != null)
-            {
-                await _localStorage.SetItemAsync("authToken", result.Token);
-                await _localStorage.SetItemAsync("authRole", result.Role ?? "");
-                _http.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", result.Token);
-            }
-
             return result ?? new LoginResponse { Status = 500, Message = "Empty response" };
         }
-        catch (Exception ex)
+        catch
         {
-            return new LoginResponse { Status = 500, Message = ex.Message };
+            return new LoginResponse { Status = 500, Message = "Could not connect to the SVS server." };
+        }
+    }
+
+    public async Task<LoginResponse> VerifyAuthenticatorAsync(AuthenticatorVerifyRequest request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/auth/mfa/verify", request);
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            if (response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(result?.Data?.Token))
+            {
+                await _localStorage.SetItemAsync("authToken", result.Data.Token);
+                await _localStorage.SetItemAsync("authRole", result.Data.Role ?? "");
+                _http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", result.Data.Token);
+            }
+            return result ?? new LoginResponse { Status = 500, Message = "Empty response" };
+        }
+        catch
+        {
+            return new LoginResponse { Status = 500, Message = "Could not connect to the SVS server." };
         }
     }
 
@@ -59,7 +72,7 @@ public class AuthService
                 DateOfBirth = register.DateOfBirth?.ToString("yyyy-MM-dd") ?? string.Empty,
                 register.Gender,
                 register.Address,
-                Number = register.Number,
+                ContactNumber = register.Number,
                 register.Role,
                 register.StudentNo,
                 register.Course,
@@ -86,10 +99,26 @@ public class AuthService
         }
     }
 
+    public async Task SaveAccountUsernameAsync(string username)
+    {
+        await _localStorage.SetItemAsync("authUsername", username.Trim());
+    }
+
+    public async Task<string?> GetAccountUsernameAsync()
+    {
+        return await _localStorage.GetItemAsync<string>("authUsername");
+    }
+
+    public async Task<string?> GetAccountRoleAsync()
+    {
+        return await _localStorage.GetItemAsync<string>("authRole");
+    }
+
     public async Task LogoutAsync()
     {
         await _localStorage.RemoveItemAsync("authToken");
         await _localStorage.RemoveItemAsync("authRole");
+        await _localStorage.RemoveItemAsync("authUsername");
         _http.DefaultRequestHeaders.Authorization = null;
     }
 }

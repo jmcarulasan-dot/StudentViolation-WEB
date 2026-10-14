@@ -37,26 +37,13 @@
                 Create Account
             </MudText>
             <MudText Style="color:rgba(255,255,255,0.5); margin-bottom:40px;">
-                Fill in the details below to register your account.
+                Submit your student account request. Admissions must approve it before you can sign in.
             </MudText>
 
             <MudForm @ref="_form" @bind-IsValid="_isValid">
 
-                @* ── Select Role ── *@
-                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Select Role</MudText>
+                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Student account request</MudText>
                 <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
-
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom:36px;">
-                    @foreach (var item in _roleOptions)
-                    {
-                        bool active = _model.Role == item.Key;
-                        <div @onclick="@(() => _model.Role = item.Key)"
-                             style="@RoleCardStyle(active)">
-                            <MudIcon Icon="@item.Icon" Style="@RoleIconStyle(active)" />
-                            <MudText Style="@RoleLabelStyle(active)">@item.Label</MudText>
-                        </div>
-                    }
-                </div>
 
                 @* ── Account Info ── *@
                 <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Account Info</MudText>
@@ -158,8 +145,10 @@
                                    AdornmentIcon="@Icons.Material.Filled.MenuBook"
                                    InputStyle="color:white;" Style="color:#FAFAFA;">
                             <MudSelectItem Value="@("BSIT")">BSIT</MudSelectItem>
-                            <MudSelectItem Value="@("BSHM")">BSHM</MudSelectItem>
+                            <MudSelectItem Value="@("BSA")">BSA</MudSelectItem>
                             <MudSelectItem Value="@("BSBA")">BSBA</MudSelectItem>
+                            <MudSelectItem Value="@("BSCS")">BSCS</MudSelectItem>
+                            <MudSelectItem Value="@("BSHM")">BSHM</MudSelectItem>
                         </MudSelect>
                         <MudSelect T="string" Label="Year Level"
                                    @bind-Value="_model.Year"
@@ -184,11 +173,11 @@
                 @if (_isLoading)
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right:8px;" />
-                    <span>Creating Account...</span>
+                    <span>Submitting request...</span>
                 }
                 else
                 {
-                    <span>Create Account</span>
+                    <span>Submit for Admission Approval</span>
                 }
             </MudButton>
 
@@ -211,7 +200,7 @@
     private string _pwdIcon = Icons.Material.Filled.VisibilityOff;
 
     // DateOfBirth is DateTime? — MudDatePicker @bind-Date needs exactly this
-    private RegisterModel _model = new();
+    private RegisterModel _model = new() { Role = "student" };
 
     // Role card data — avoids repetitive markup
     private record RoleItem(string Key, string Label, string Icon);
@@ -253,7 +242,7 @@
             var result = await AuthService.RegisterAsync(_model);
             if (result?.Status == 200)
             {
-                Snackbar.Add("Account created successfully!", Severity.Success);
+                Snackbar.Add("Request submitted. You can sign in after Admissions approves it.", Severity.Success);
                 Nav.NavigateTo("/login");
             }
             else

@@ -1,0 +1,593 @@
+@page "/admission/dashboard"
+@using MudBlazor
+@using System.Text.RegularExpressions
+@using StudentViolationWeb.Data
+@using StudentViolationWeb.Model
+@using StudentViolationWeb.Model.Response
+@inject AdmissionService AdmissionService
+@inject NavigationManager Nav
+@inject AuthService AuthService
+@inject ISnackbar Snackbar
+
+<PageTitle>Admissions | Student Violation System</PageTitle>
+<MudThemeProvider />
+
+<div class="admissions-app">
+    <aside class="admissions-sidebar">
+        <div class="brand-lockup">
+            <div class="brand-symbol">S</div>
+            <div><strong>SVS</strong><span>STUDENT VIOLATION SYSTEM</span></div>
+        </div>
+        <div class="workspace-label">ADMISSIONS</div>
+        <nav class="admissions-nav" aria-label="Admissions navigation">
+            <button class="@(_section == "overview" ? "active" : "")" @onclick='() => SelectSection("overview")'><MudIcon Icon="@Icons.Material.Filled.Dashboard" /><span>Overview</span></button>
+            <button class="@(_section == "requests" ? "active" : "")" @onclick='() => SelectSection("requests")'><MudIcon Icon="@Icons.Material.Filled.PersonAddAlt1" /><span>Registration queue</span>@if (PendingCount > 0) { <em>@PendingCount</em> }</button>
+            <button class="@(_section == "enrollments" ? "active" : "")" @onclick='() => SelectSection("enrollments")'><MudIcon Icon="@Icons.Material.Filled.Groups" /><span>Enrollments</span></button>
+            <button class="@(_section == "clearance" ? "active" : "")" @onclick='() => SelectSection("clearance")'><MudIcon Icon="@Icons.Material.Filled.FactCheck" /><span>Clearance</span></button>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-user">
+            <div class="user-avatar">@_accountInitials</div>
+            <div><strong>@_accountName</strong><span>@_accountRole</span></div>
+            <MudIconButton Icon="@Icons.Material.Filled.Logout" title="Sign out" Size="Size.Small" OnClick="Logout" />
+        </div>
+    </aside>
+
+    <main class="admissions-main">
+        <header class="topbar">
+            <div class="topbar-title">
+                <span>STUDENT SERVICES <MudIcon Icon="@Icons.Material.Filled.ChevronRight" /> ADMISSIONS</span>
+                <strong>@SectionTitle</strong>
+            </div>
+            <div class="topbar-actions">
+                <span class="secure-label"><MudIcon Icon="@Icons.Material.Filled.VerifiedUser" /> Admissions workspace</span>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" title="Refresh data" OnClick="RefreshCurrent" />
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" title="Sign out" OnClick="Logout" Class="mobile-logout" />
+            </div>
+        </header>
+
+        <div class="page-content">
+            <div class="page-intro">
+                <div>
+                    <div class="eyebrow">ADMISSIONS WORKSPACE</div>
+                    <h1>@SectionTitle</h1>
+                    <p>@SectionSubtitle</p>
+                </div>
+                @if (_section == "overview")
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAddAlt1" OnClick='() => SelectSection("requests")'>Review requests <span class="button-count">@PendingCount</span></MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="RefreshCurrent">Refresh</MudButton>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_pageError))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Class="page-alert">@_pageError</MudAlert>
+            }
+
+            @if (_section == "overview")
+            {
+                <section class="metric-grid">
+                    <div class="metric-card metric-primary">
+                        <div class="metric-icon"><MudIcon Icon="@Icons.Material.Filled.PersonAddAlt1" /></div>
+                        <div><span>Pending registrations</span><strong>@PendingCount</strong></div>
+                        <button title="Open registration queue" @onclick='() => SelectSection("requests")'><MudIcon Icon="@Icons.Material.Filled.ArrowForward" /></button>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon blue"><MudIcon Icon="@Icons.Material.Filled.Groups" /></div>
+                        <div><span>Enrollment records</span><strong>@(_enrollments?.Count ?? 0)</strong></div>
+                        <button title="View enrollments" @onclick='() => SelectSection("enrollments")'><MudIcon Icon="@Icons.Material.Filled.ArrowForward" /></button>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon green"><MudIcon Icon="@Icons.Material.Filled.FactCheck" /></div>
+                        <div><span>Clearance service</span><strong class="metric-word">Ready</strong></div>
+                        <button title="Check clearance" @onclick='() => SelectSection("clearance")'><MudIcon Icon="@Icons.Material.Filled.ArrowForward" /></button>
+                    </div>
+                </section>
+
+                <div class="overview-grid">
+                    <section class="panel">
+                        <div class="panel-heading">
+                            <div><h2>Registration queue</h2><p>Recent student account requests awaiting review.</p></div>
+                            <button class="text-link" @onclick='() => SelectSection("requests")'>View queue <MudIcon Icon="@Icons.Material.Filled.ArrowForward" /></button>
+                        </div>
+                        @if (_requests is null)
+                        {
+                            <div class="loading-line"><MudProgressLinear Indeterminate="true" Color="Color.Primary" /></div>
+                        }
+                        else if (_requests.Count == 0)
+                        {
+                            <div class="empty-state compact"><MudIcon Icon="@Icons.Material.Filled.Inbox" /><span>There are no registration requests to review.</span></div>
+                        }
+                        else
+                        {
+                            <div class="request-list">
+                                @foreach (var request in _requests.Take(5))
+                                {
+                                    <div class="request-row">
+                                        <MudAvatar Size="Size.Medium" Color="Color.Primary" Class="request-avatar">@Initials(request.FirstName, request.LastName)</MudAvatar>
+                                        <div class="request-person"><strong>@request.FirstName @request.LastName</strong><span>@request.StudentNo · @request.Email</span></div>
+                                        <MudChip T="string" Size="Size.Small" Color="@RequestColor(request.RequestStatus)" Variant="Variant.Outlined">@request.RequestStatus</MudChip>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </section>
+                    <section class="panel action-panel">
+                        <div class="panel-heading"><div><h2>Admissions tasks</h2><p>Shortcuts to common student record work.</p></div></div>
+                        <button class="task-link" @onclick='() => SelectSection("requests")'><span class="task-icon purple"><MudIcon Icon="@Icons.Material.Filled.PersonAddAlt1" /></span><span><strong>Review registrations</strong><small>Approve or reject account requests</small></span><MudIcon Icon="@Icons.Material.Filled.ChevronRight" /></button>
+                        <button class="task-link" @onclick='() => SelectSection("enrollments")'><span class="task-icon blue"><MudIcon Icon="@Icons.Material.Filled.Groups" /></span><span><strong>Manage enrollments</strong><small>Create and find student records</small></span><MudIcon Icon="@Icons.Material.Filled.ChevronRight" /></button>
+                        <button class="task-link" @onclick='() => SelectSection("clearance")'><span class="task-icon green"><MudIcon Icon="@Icons.Material.Filled.FactCheck" /></span><span><strong>Check clearance</strong><small>Review eligibility and record a signature</small></span><MudIcon Icon="@Icons.Material.Filled.ChevronRight" /></button>
+                    </section>
+                </div>
+            }
+            else if (_section == "requests")
+            {
+                <section class="panel">
+                    <div class="panel-heading">
+                        <div><h2>Registration requests</h2><p>Verify each request before approving an account.</p></div>
+                        <span class="queue-count"><strong>@PendingCount</strong> pending</span>
+                    </div>
+                    @if (_requests is null)
+                    {
+                        <div class="loading-line"><MudProgressLinear Indeterminate="true" Color="Color.Primary" /></div>
+                    }
+                    else if (_requests.Count == 0)
+                    {
+                        <div class="empty-state"><MudIcon Icon="@Icons.Material.Filled.Inbox" /><strong>Queue is clear</strong><span>No registration requests are waiting for review.</span></div>
+                    }
+                    else
+                    {
+                        <MudTable Items="_requests" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Class="data-table">
+                            <HeaderContent><MudTh>Student</MudTh><MudTh>Student number</MudTh><MudTh>Account details</MudTh><MudTh>Status</MudTh><MudTh>Decision</MudTh></HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Student"><strong>@context.FirstName @context.LastName</strong><small class="table-subline">@context.Course · Year @context.Year</small></MudTd>
+                                <MudTd DataLabel="Student number">@context.StudentNo</MudTd>
+                                <MudTd DataLabel="Account details"><span>@context.Username</span><small class="table-subline">@context.Email</small></MudTd>
+                                <MudTd DataLabel="Status"><MudChip T="string" Size="Size.Small" Color="@RequestColor(context.RequestStatus)" Variant="Variant.Outlined">@context.RequestStatus</MudChip></MudTd>
+                                <MudTd DataLabel="Decision"><div class="row-actions">
+                                    <MudButton Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined" Disabled="@(_busy || !IsPending(context.RequestStatus))" OnClick="()=>ReviewRequest(context.RequestId, true)">Approve</MudButton>
+                                    <MudButton Size="Size.Small" Color="Color.Error" Variant="Variant.Text" Disabled="@(_busy || !IsPending(context.RequestStatus))" OnClick="()=>ReviewRequest(context.RequestId, false)">Reject</MudButton>
+                                </div></MudTd>
+                            </RowTemplate>
+                            <PagerContent><MudTablePager /></PagerContent>
+                        </MudTable>
+                    }
+                </section>
+            }
+            else if (_section == "enrollments")
+            {
+                <div class="enrollment-grid">
+                    <section class="panel enrollment-form">
+                        <div class="panel-heading"><div><h2>New enrollment</h2><p>Add a student to the enrollment records.</p></div><span class="form-badge"><MudIcon Icon="@Icons.Material.Filled.PersonAdd" /></span></div>
+                        <div class="form-fields">
+                            <MudTextField @bind-Value="_form.StudentNo" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.StudentNo))" Label="Student number" Placeholder="ABC-00-0000-ABC123" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.StudentNo))" ErrorText="@EnrollmentError(nameof(_form.StudentNo))" />
+                            <div class="form-pair">
+                                <MudTextField @bind-Value="_form.FirstName" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.FirstName))" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.FirstName))" ErrorText="@EnrollmentError(nameof(_form.FirstName))" />
+                                <MudTextField @bind-Value="_form.LastName" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.LastName))" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.LastName))" ErrorText="@EnrollmentError(nameof(_form.LastName))" />
+                            </div>
+                            <MudTextField @bind-Value="_form.Email" @bind-Value:after="() => ClearEnrollmentError(nameof(_form.Email))" Label="Email address" Placeholder="name@example.com" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Email))" ErrorText="@EnrollmentError(nameof(_form.Email))" />
+                            <div class="form-pair course-pair">
+                                <MudSelect T="string" Value="@_form.Course" ValueChanged="@(value => OnCourseChanged(value))" Label="Course" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Course))" ErrorText="@EnrollmentError(nameof(_form.Course))" Disabled="@(!CourseOptions.Any())">
+                                    @foreach (var course in CourseOptions) { <MudSelectItem T="string" Value="@course">@course</MudSelectItem> }
+                                </MudSelect>
+                                <MudSelect T="string" Value="@_form.Year" ValueChanged="@(value => OnYearChanged(value))" Label="Year level" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" Error="@HasEnrollmentError(nameof(_form.Year))" ErrorText="@EnrollmentError(nameof(_form.Year))" Disabled="@(!YearOptions.Any())">
+                                    @foreach (var year in YearOptions) { <MudSelectItem T="string" Value="@year">Year @year</MudSelectItem> }
+                                </MudSelect>
+                            </div>
+                            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary" Disabled="@_busy" OnClick="CreateEnrollment">
+                                @if (_busy) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> } Save enrollment
+                            </MudButton>
+                        </div>
+                    </section>
+                    <section class="panel records-panel">
+                        <div class="panel-heading records-heading"><div><h2>Enrollment records</h2><p>@(_enrollments?.Count ?? 0) student records</p></div><MudTextField @bind-Value="_enrollmentSearch" Placeholder="Search records" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" Variant="Variant.Outlined" Class="record-search" /></div>
+                        @if (_enrollments is null)
+                        {
+                            <div class="loading-line"><MudProgressLinear Indeterminate="true" Color="Color.Primary" /></div>
+                        }
+                        else
+                        {
+                            var rows = _enrollments.Where(x => string.IsNullOrWhiteSpace(_enrollmentSearch) || $"{x.StudentNo} {x.FirstName} {x.LastName} {x.Course}".Contains(_enrollmentSearch, StringComparison.OrdinalIgnoreCase)).ToList();
+                            @if (rows.Count == 0)
+                            {
+                                <div class="empty-state compact"><MudIcon Icon="@Icons.Material.Filled.SearchOff" /><span>No enrollment records match this search.</span></div>
+                            }
+                            else
+                            {
+                                <MudTable Items="rows" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Class="data-table">
+                                    <HeaderContent><MudTh>Student number</MudTh><MudTh>Student</MudTh><MudTh>Course</MudTh><MudTh>Year</MudTh></HeaderContent>
+                                    <RowTemplate><MudTd DataLabel="Student number">@context.StudentNo</MudTd><MudTd DataLabel="Student"><strong>@context.FirstName @context.LastName</strong><small class="table-subline">@context.Email</small></MudTd><MudTd DataLabel="Course">@context.Course</MudTd><MudTd DataLabel="Year">@context.Year</MudTd></RowTemplate>
+                                    <PagerContent><MudTablePager /></PagerContent>
+                                </MudTable>
+                            }
+                        }
+                    </section>
+                </div>
+            }
+            else if (_section == "clearance")
+            {
+                <div class="clearance-grid">
+                    <section class="panel clearance-panel">
+                        <div class="panel-heading"><div><h2>Check student clearance</h2><p>Check eligibility before recording the student’s clearance signature.</p></div></div>
+                        <div class="clearance-form">
+                            <MudTextField T="string" Value="@_clearanceStudentNo" ValueChanged="OnClearanceStudentNoChanged" Label="Student number" Placeholder="ABC-00-0000-ABC123" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_busy" OnClick="CheckClearance" StartIcon="@Icons.Material.Filled.Search">Check status</MudButton>
+                        </div>
+                        @if (_clearance is not null)
+                        {
+                            <div class="clearance-result">
+                                @if (_clearance.Status == 404)
+                                {
+                                    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">Student not found. Check the student number and try again.</MudAlert>
+                                }
+                                else if (_clearance.Status == 400)
+                                {
+                                    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_clearance.Message</MudAlert>
+                                }
+                                else
+                                {
+                                    <MudAlert Severity="@(_clearance.CanSign ? Severity.Success : Severity.Warning)" Variant="Variant.Outlined">
+                                        @(_clearance.CanSign ? "Eligible for clearance signing" : "Not eligible for clearance signing")
+                                    </MudAlert>
+                                    @if (!string.IsNullOrWhiteSpace(_clearance.Message)) { <p class="clearance-message">@_clearance.Message</p> }
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!_clearance.CanSign || _busy)" OnClick="SignClearance" StartIcon="@Icons.Material.Filled.Draw">Record clearance signature</MudButton>
+                                }
+                            </div>
+                        }
+                    </section>
+                    <aside class="panel process-panel">
+                        <div class="process-icon"><MudIcon Icon="@Icons.Material.Filled.VerifiedUser" /></div>
+                        <h2>Clearance workflow</h2>
+                        <p>The API checks the student’s current status. A signature can be recorded only when the API confirms eligibility.</p>
+                        <div class="process-step"><span>1</span><div><strong>Look up the student</strong><small>Enter the student number and check status.</small></div></div>
+                        <div class="process-step"><span>2</span><div><strong>Review eligibility</strong><small>Follow the status returned by the system.</small></div></div>
+                        <div class="process-step"><span>3</span><div><strong>Record clearance</strong><small>Submit the signature when eligible.</small></div></div>
+                    </aside>
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+<style>
+    .admissions-app { --navy:#17243b; --ink:#17243b; --muted:#758197; --line:#e7ebf1; --canvas:#f4f6f9; --blue:#3659cf; display:flex; min-height:100vh; background:var(--canvas); color:var(--ink); }
+    .admissions-sidebar { position:fixed; inset:0 auto 0 0; z-index:20; width:238px; display:flex; flex-direction:column; padding:20px 14px 14px; background:var(--navy); color:#fff; }
+    .brand-lockup { display:flex; align-items:center; gap:11px; padding:4px 9px 24px; }
+    .brand-symbol { width:38px; height:38px; display:grid; place-items:center; border-radius:11px; background:#fff; color:var(--blue); font-weight:900; font-size:1.2rem; }
+    .brand-lockup div:last-child { display:flex; flex-direction:column; gap:2px; }
+    .brand-lockup strong { font-size:1.1rem; letter-spacing:.06em; }
+    .brand-lockup span { color:#aebbd0; font-size:.56rem; letter-spacing:.11em; }
+    .workspace-label { padding:10px 12px 8px; color:#8593aa; font-size:.63rem; font-weight:800; letter-spacing:.14em; }
+    .admissions-nav { display:flex; flex-direction:column; gap:5px; }
+    .admissions-nav button { position:relative; display:flex; align-items:center; gap:12px; width:100%; min-height:44px; padding:0 12px; border:0; border-radius:9px; color:#c0cada; background:transparent; font-family:inherit; font-size:.82rem; font-weight:600; text-align:left; cursor:pointer; }
+    .admissions-nav button:hover { color:#fff; background:#233451; }
+    .admissions-nav button.active { color:#fff; background:#2a3b58; box-shadow:inset 3px 0 #82a0ff; }
+    .admissions-nav .mud-icon-root { width:19px; font-size:19px; color:#91a1bb; }
+    .admissions-nav button.active .mud-icon-root { color:#a9bcff; }
+    .admissions-nav button span { flex:1; }
+    .admissions-nav em { min-width:22px; padding:2px 6px; border-radius:20px; color:#fff; background:#bd5364; font-style:normal; font-size:.7rem; text-align:center; }
+    .sidebar-spacer { flex:1; }
+    .sidebar-user { display:flex; align-items:center; gap:9px; padding:11px 7px 4px; border-top:1px solid #30405a; }
+    .user-avatar { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; color:#bed0ff; background:#2a3b58; }
+    .sidebar-user > div:nth-child(2) { display:flex; flex:1; min-width:0; flex-direction:column; }
+    .sidebar-user strong { font-size:.78rem; }
+    .sidebar-user span { color:#9aa8bd; font-size:.68rem; }
+    .sidebar-user .mud-icon-button { color:#9aa8bd; }
+    .admissions-main { flex:1; min-width:0; margin-left:238px; }
+    .topbar { height:68px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:0 30px; background:#fff; border-bottom:1px solid var(--line); }
+    .topbar-title { display:flex; flex-direction:column; gap:3px; }
+    .topbar-title > span { display:flex; align-items:center; color:#909bad; font-size:.57rem; font-weight:800; letter-spacing:.1em; }
+    .topbar-title .mud-icon-root { width:16px; font-size:14px; }
+    .topbar-title strong { font-size:.94rem; font-weight:750; }
+    .topbar-actions { display:flex; align-items:center; gap:8px; }
+    .secure-label { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--line); border-radius:20px; color:#67758a; font-size:.68rem; }
+    .secure-label .mud-icon-root { font-size:15px; color:#39795d; }
+    .mobile-logout { display:none; }
+    .page-content { width:100%; max-width:1520px; margin:0 auto; padding:26px 30px 40px; }
+    .page-intro { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:21px; }
+    .eyebrow { color:#586f9f; font-size:.64rem; font-weight:800; letter-spacing:.13em; }
+    .page-intro h1 { margin:5px 0 3px; font-size:1.7rem; line-height:1.2; font-weight:800; letter-spacing:-.04em; }
+    .page-intro p { margin:0; color:var(--muted); font-size:.88rem; }
+    .button-count { margin-left:8px; padding:1px 7px; border-radius:15px; color:#fff; background:#ffffff33; font-size:.73rem; }
+    .page-alert { margin-bottom:16px; }
+    .metric-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; margin-bottom:17px; }
+    .metric-card { display:flex; align-items:center; gap:12px; min-height:91px; padding:15px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+    .metric-icon { width:40px; height:40px; display:grid; place-items:center; flex:none; border-radius:10px; color:#704cb5; background:#f1ecfb; }
+    .metric-icon.blue { color:#3b60c8; background:#edf1fc; }
+    .metric-icon.green { color:#25815b; background:#eaf5ef; }
+    .metric-card > div:nth-child(2) { display:flex; flex:1; flex-direction:column; gap:2px; }
+    .metric-card span { color:var(--muted); font-size:.72rem; }
+    .metric-card strong { font-size:1.55rem; line-height:1.2; font-weight:800; }
+    .metric-card strong.metric-word { font-size:1.15rem; }
+    .metric-card > button { width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:8px; color:#8793a5; background:transparent; cursor:pointer; }
+    .metric-card > button:hover { color:var(--blue); background:#eff2fa; }
+    .overview-grid { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(290px,.85fr); gap:15px; align-items:start; }
+    .panel { min-width:0; padding:18px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+    .panel-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .panel-heading h2 { margin:0; font-size:.96rem; font-weight:780; letter-spacing:-.02em; }
+    .panel-heading p { margin:4px 0 0; color:var(--muted); font-size:.74rem; }
+    .text-link { display:flex; align-items:center; gap:4px; border:0; color:var(--blue); background:none; font-size:.75rem; font-weight:700; white-space:nowrap; cursor:pointer; }
+    .text-link .mud-icon-root { font-size:16px; }
+    .request-row { display:flex; align-items:center; gap:11px; padding:10px 0; border-top:1px solid #eef0f4; }
+    .request-avatar { font-size:.68rem; font-weight:750; }
+    .request-person { display:flex; flex:1; min-width:0; flex-direction:column; gap:3px; }
+    .request-person strong { overflow:hidden; font-size:.78rem; text-overflow:ellipsis; white-space:nowrap; }
+    .request-person span { overflow:hidden; color:var(--muted); font-size:.68rem; text-overflow:ellipsis; white-space:nowrap; }
+    .action-panel { padding-bottom:9px; }
+    .task-link { display:flex; align-items:center; gap:10px; width:100%; padding:10px 0; border:0; border-top:1px solid #eef0f4; background:transparent; text-align:left; cursor:pointer; }
+    .task-link > span:nth-child(2) { display:flex; flex:1; flex-direction:column; gap:3px; }
+    .task-link strong { font-size:.76rem; }
+    .task-link small { color:var(--muted); font-size:.67rem; }
+    .task-link > .mud-icon-root { color:#9aa4b3; font-size:18px; }
+    .task-icon { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; }
+    .task-icon .mud-icon-root { font-size:18px; }
+    .task-icon.purple { color:#704cb5; background:#f1ecfb; }
+    .task-icon.blue { color:#3b60c8; background:#edf1fc; }
+    .task-icon.green { color:#25815b; background:#eaf5ef; }
+    .queue-count { padding:5px 9px; border:1px solid #f0dcae; border-radius:20px; color:#927121; background:#fff9e9; font-size:.68rem; white-space:nowrap; }
+    .queue-count strong { margin-right:3px; font-size:.77rem; }
+    .data-table { overflow:hidden; }
+    .data-table .mud-table-head .mud-table-cell { color:#758197; font-size:.64rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+    .data-table .mud-table-body .mud-table-cell { padding-top:10px; padding-bottom:10px; font-size:.76rem; }
+    .data-table .mud-table-toolbar { min-height:42px; }
+    .table-subline { display:block; margin-top:3px; color:var(--muted); font-size:.68rem; }
+    .row-actions { display:flex; align-items:center; gap:3px; }
+    .empty-state { min-height:190px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; color:var(--muted); text-align:center; }
+    .empty-state .mud-icon-root { color:#9aa6b7; font-size:30px; }
+    .empty-state strong { color:var(--ink); font-size:.88rem; }
+    .empty-state span { font-size:.74rem; }
+    .empty-state.compact { min-height:110px; flex-direction:row; justify-content:flex-start; gap:9px; font-size:.76rem; text-align:left; }
+    .empty-state.compact .mud-icon-root { font-size:22px; }
+    .loading-line { padding:8px 0; }
+    .enrollment-grid { display:grid; grid-template-columns:minmax(280px,.76fr) minmax(0,1.65fr); gap:15px; align-items:start; }
+    .enrollment-form .panel-heading { align-items:flex-start; }
+    .form-badge { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; color:#704cb5; background:#f1ecfb; }
+    .form-fields { display:flex; flex-direction:column; gap:8px; }
+    .form-pair { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .course-pair { grid-template-columns:minmax(0,1.5fr) minmax(90px,.7fr); }
+    .records-heading { align-items:flex-start; }
+    .record-search { width:230px; flex:none; }
+    .clearance-grid { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(280px,.75fr); gap:15px; align-items:start; }
+    .clearance-form { display:flex; align-items:flex-start; gap:10px; max-width:720px; }
+    .clearance-form .mud-input-control { flex:1; }
+    .clearance-result { display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-top:8px; }
+    .clearance-result .mud-alert { width:100%; }
+    .clearance-message { margin:0; color:var(--muted); font-size:.78rem; }
+    .process-panel { background:#f9fafc; }
+    .process-icon { width:38px; height:38px; display:grid; place-items:center; border-radius:10px; color:#25815b; background:#eaf5ef; }
+    .process-panel h2 { margin:12px 0 4px; font-size:.93rem; font-weight:780; }
+    .process-panel > p { margin:0 0 13px; color:var(--muted); font-size:.73rem; line-height:1.55; }
+    .process-step { display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-top:1px solid var(--line); }
+    .process-step > span { width:21px; height:21px; display:grid; flex:none; place-items:center; border-radius:50%; color:#536b9c; background:#e9edf5; font-size:.65rem; font-weight:800; }
+    .process-step div { display:flex; flex-direction:column; gap:3px; }
+    .process-step strong { font-size:.71rem; }
+    .process-step small { color:var(--muted); font-size:.65rem; }
+    @@media (max-width:1100px) { .overview-grid,.clearance-grid { grid-template-columns:1fr; } .enrollment-grid { grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr); } .page-content { padding:22px 20px 34px; } }
+    @@media (max-width:760px) {
+        .admissions-sidebar { position:fixed; inset:auto 0 0; width:auto; height:66px; flex-direction:row; align-items:center; padding:5px 8px; border-top:1px solid #34445d; }
+        .brand-lockup,.workspace-label,.sidebar-spacer,.sidebar-user { display:none; }
+        .admissions-nav { width:100%; flex-direction:row; justify-content:space-around; gap:3px; }
+        .admissions-nav button { min-height:52px; flex:1; flex-direction:column; justify-content:center; gap:2px; padding:3px 2px; font-size:.59rem; }
+        .admissions-nav button.active { box-shadow:inset 0 2px #91aaff; }
+        .admissions-nav .mud-icon-root { font-size:18px; }
+        .admissions-nav em { position:absolute; top:1px; right:calc(50% - 22px); min-width:17px; padding:0 4px; font-size:.57rem; }
+        .admissions-main { margin-left:0; padding-bottom:66px; }
+        .topbar { height:58px; padding:0 13px; }
+        .secure-label { display:none; }
+        .mobile-logout { display:inline-flex; }
+        .page-content { padding:18px 14px 24px; }
+        .page-intro { align-items:flex-start; }
+        .page-intro h1 { font-size:1.48rem; }
+        .metric-grid { grid-template-columns:1fr; gap:8px; }
+        .metric-card { min-height:74px; padding:11px 12px; }
+        .enrollment-grid { grid-template-columns:1fr; }
+        .records-heading { flex-direction:column; }
+        .record-search { width:100%; }
+        .clearance-form { flex-direction:column; }
+        .clearance-form .mud-input-control,.clearance-form .mud-button-root { width:100%; }
+    }
+    @@media (max-width:540px) {
+        .page-content { padding:15px 10px 20px; }
+        .page-intro { flex-direction:column; align-items:stretch; }
+        .page-intro > .mud-button-root { align-self:flex-start; }
+        .panel { padding:14px 12px; }
+        .panel-heading { align-items:flex-start; }
+        .request-row { gap:8px; }
+        .request-person span { max-width:160px; }
+        .request-row .mud-chip { font-size:.61rem; }
+        .form-pair { grid-template-columns:1fr; gap:5px; }
+        .data-table { overflow-x:auto; }
+        .data-table .mud-table-container { overflow-x:auto; }
+        .row-actions { flex-wrap:wrap; }
+    }
+</style>
+
+@code {
+    private string _section = "overview";
+    private bool _drawerOpen = true;
+    private bool _busy;
+    private string? _pageError;
+    private List<AdmissionEnrollment>? _enrollments;
+    private List<AdmissionRegistrationRequest>? _requests;
+    private string _enrollmentSearch = "";
+    private string _clearanceStudentNo = "";
+    private AdmissionClearanceResponse? _clearance;
+    private AdmissionEnrollmentForm _form = new();
+    private readonly Dictionary<string, string> _enrollmentErrors = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly List<string> CourseOptions = new() { "BSIT", "BSA", "BSBA", "BSCS", "BSHM" };
+    private static readonly List<string> YearOptions = new() { "1", "2", "3", "4" };
+
+    private int PendingCount => _requests?.Count(x => x.RequestStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase)) ?? 0;
+    private string SectionTitle => _section switch { "requests" => "Registration requests", "enrollments" => "Enrollment records", "clearance" => "Student clearance", _ => "Admissions overview" };
+    private string SectionSubtitle => _section switch { "requests" => "Review student account requests and verify registrations.", "enrollments" => "Maintain student enrollment records.", "clearance" => "Check a student’s eligibility and record clearance.", _ => "Manage student registration, enrollment, and clearance in one place." };
+
+    private string _accountName = "Admissions";
+    private string _accountRole = "Student records";
+    private string _accountInitials = "AD";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var username = await AuthService.GetAccountUsernameAsync();
+        var role = await AuthService.GetAccountRoleAsync();
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            _accountName = username;
+            _accountInitials = string.Concat(username.Trim().Take(2)).ToUpperInvariant();
+        }
+        _accountRole = role?.ToUpperInvariant() == "ADMISSION" ? "Admissions" : "Account";
+        await LoadAll();
+    }
+
+    private async Task LoadAll()
+    {
+        _pageError = null;
+        var requestsTask = AdmissionService.GetRegistrationRequestsAsync();
+        var enrollmentsTask = AdmissionService.GetEnrollmentsAsync();
+        await Task.WhenAll(requestsTask, enrollmentsTask);
+        var requests = await requestsTask;
+        var enrollments = await enrollmentsTask;
+        _requests = requests.Data ?? new();
+        _enrollments = enrollments.Data ?? new();
+        if (requests.Status >= 400) _pageError = requests.Message;
+        else if (enrollments.Status >= 400) _pageError = enrollments.Message;
+    }
+
+    private async Task SelectSection(string section)
+    {
+        _section = section;
+        if (_section == "requests") _requests = null;
+        if (_section == "enrollments") _enrollments = null;
+        if (_section == "overview" || _section == "requests" || _section == "enrollments") await LoadAll();
+        _drawerOpen = false;
+    }
+
+    private async Task RefreshCurrent() => await LoadAll();
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    private static string Initials(string first, string last) => $"{(first.Length > 0 ? first[0] : '?')}{(last.Length > 0 ? last[0] : '?')}";
+    private static bool IsPending(string? status) => status?.Equals("Pending", StringComparison.OrdinalIgnoreCase) == true;
+    private static Color RequestColor(string? status) => status?.Equals("Approved", StringComparison.OrdinalIgnoreCase) == true ? Color.Success : status?.Equals("Rejected", StringComparison.OrdinalIgnoreCase) == true ? Color.Error : Color.Warning;
+
+    private async Task ReviewRequest(int id, bool approve)
+    {
+        _busy = true;
+        var result = approve ? await AdmissionService.ApproveRegistrationAsync(id) : await AdmissionService.RejectRegistrationAsync(id);
+        _busy = false;
+        Snackbar.Add(result.Message ?? (approve ? "Request approved." : "Request rejected."), result.Status is >= 200 and < 300 ? Severity.Success : Severity.Error);
+        if (result.Status is >= 200 and < 300) await LoadAll();
+    }
+
+    private bool HasEnrollmentError(string field) => _enrollmentErrors.ContainsKey(field);
+    private string? EnrollmentError(string field) => _enrollmentErrors.TryGetValue(field, out var message) ? message : null;
+    private void ClearEnrollmentError(string field) => _enrollmentErrors.Remove(field);
+
+    private void OnCourseChanged(string? value)
+    {
+        _form.Course = value ?? "";
+        ClearEnrollmentError(nameof(_form.Course));
+    }
+
+    private void OnYearChanged(string? value)
+    {
+        _form.Year = value ?? "";
+        ClearEnrollmentError(nameof(_form.Year));
+    }
+
+    private bool ValidateEnrollment()
+    {
+        _enrollmentErrors.Clear();
+
+        if (string.IsNullOrWhiteSpace(_form.StudentNo))
+            _enrollmentErrors[nameof(_form.StudentNo)] = "Student number is required.";
+        else if (!Regex.IsMatch(_form.StudentNo.Trim(), @"^[A-Za-z0-9]{3}-\d{2}-\d{4}-[A-Za-z0-9]{6}$"))
+            _enrollmentErrors[nameof(_form.StudentNo)] = "Use the format ABC-00-0000-ABC123.";
+
+        if (string.IsNullOrWhiteSpace(_form.FirstName))
+            _enrollmentErrors[nameof(_form.FirstName)] = "First name is required.";
+        if (string.IsNullOrWhiteSpace(_form.LastName))
+            _enrollmentErrors[nameof(_form.LastName)] = "Last name is required.";
+
+        if (string.IsNullOrWhiteSpace(_form.Email))
+            _enrollmentErrors[nameof(_form.Email)] = "Email address is required.";
+        else if (!Regex.IsMatch(_form.Email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            _enrollmentErrors[nameof(_form.Email)] = "Enter a valid email address, such as name@example.com.";
+
+        if (CourseOptions.Count == 0)
+            _enrollmentErrors[nameof(_form.Course)] = "Select a course from the list.";
+        else if (!CourseOptions.Contains(_form.Course, StringComparer.OrdinalIgnoreCase))
+            _enrollmentErrors[nameof(_form.Course)] = "Select a course from the list.";
+        if (YearOptions.Count == 0)
+            _enrollmentErrors[nameof(_form.Year)] = "Select a year level from the list.";
+        else if (!YearOptions.Contains(_form.Year, StringComparer.OrdinalIgnoreCase))
+            _enrollmentErrors[nameof(_form.Year)] = "Select a year level from the list.";
+
+        return _enrollmentErrors.Count == 0;
+    }
+
+    private async Task CreateEnrollment()
+    {
+        if (!ValidateEnrollment())
+        {
+            Snackbar.Add("Please correct the highlighted fields.", Severity.Warning);
+            return;
+        }
+
+        _busy = true;
+        var result = await AdmissionService.CreateEnrollmentAsync(_form);
+        _busy = false;
+        Snackbar.Add(result.Message ?? (result.Status == 200 ? "Enrollment saved." : "Unable to save enrollment."), result.Status == 200 ? Severity.Success : Severity.Error);
+        if (result.Status == 200)
+        {
+            _form = new();
+            _enrollmentErrors.Clear();
+            await LoadAll();
+        }
+    }
+
+    private void OnClearanceStudentNoChanged(string? value)
+    {
+        _clearanceStudentNo = value ?? "";
+        _clearance = null;
+    }
+
+    private async Task CheckClearance()
+    {
+        _clearance = null;
+        if (string.IsNullOrWhiteSpace(_clearanceStudentNo))
+        {
+            Snackbar.Add("Enter a student number.", Severity.Warning);
+            return;
+        }
+        var studentNo = _clearanceStudentNo.Trim().ToUpperInvariant();
+        if (!Regex.IsMatch(studentNo, @"^[A-Z0-9]{3}-\d{2}-\d{4}-[A-Z0-9]{6}$"))
+        {
+            _clearance = new AdmissionClearanceResponse { Status = 400, Message = "Student number format is invalid. Use the format ABC-00-0000-ABC123." };
+            return;
+        }
+
+        _busy = true;
+        _clearance = await AdmissionService.CheckClearanceAsync(studentNo);
+        _busy = false;
+        if (_clearance.Status >= 400 && _clearance.Status != 404)
+            Snackbar.Add(_clearance.Message ?? "Could not check clearance.", Severity.Error);
+    }
+
+    private async Task SignClearance()
+    {
+        if (_clearance is null || !_clearance.CanSign) return;
+        _busy = true;
+        var result = await AdmissionService.SignClearanceAsync(_clearanceStudentNo.Trim());
+        _busy = false;
+        Snackbar.Add(result.Message ?? "Clearance signature submitted.", result.Status == 200 ? Severity.Success : Severity.Error);
+        if (result.Status == 200) await CheckClearance();
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}
