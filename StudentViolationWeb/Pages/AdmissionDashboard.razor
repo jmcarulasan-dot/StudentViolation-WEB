@@ -6,6 +6,7 @@
 @using StudentViolationWeb.Model.Response
 @inject AdmissionService AdmissionService
 @inject NavigationManager Nav
+@inject AuthService AuthService
 @inject ISnackbar Snackbar
 
 <PageTitle>Admissions | Student Violation System</PageTitle>
@@ -14,8 +15,8 @@
 <div class="admissions-app">
     <aside class="admissions-sidebar">
         <div class="brand-lockup">
-            <div class="brand-symbol">S</div>
-            <div><strong>SVS</strong><span>STUDENT VIOLATION SYSTEM</span></div>
+            <div class="brand-symbol"><img src="Image/aclc-logo.png" alt="ACLC College of Mandaue logo" /></div>
+            <div><strong>ACLC</strong><span>COLLEGE OF MANDAUE</span><small>STUDENT VIOLATION SYSTEM</small></div>
         </div>
         <div class="workspace-label">ADMISSIONS</div>
         <nav class="admissions-nav" aria-label="Admissions navigation">
@@ -26,8 +27,8 @@
         </nav>
         <div class="sidebar-spacer"></div>
         <div class="sidebar-user">
-            <div class="user-avatar"><MudIcon Icon="@Icons.Material.Filled.School" /></div>
-            <div><strong>Admissions</strong><span>Student records</span></div>
+            <div class="user-avatar">@_accountInitials</div>
+            <div><strong>@_accountName</strong><span>@_accountRole</span></div>
             <MudIconButton Icon="@Icons.Material.Filled.Logout" title="Sign out" Size="Size.Small" OnClick="Logout" />
         </div>
     </aside>
@@ -253,10 +254,12 @@
 </div>
 
 <style>
-    .admissions-app { --navy:#17243b; --ink:#17243b; --muted:#758197; --line:#e7ebf1; --canvas:#f4f6f9; --blue:#3659cf; display:flex; min-height:100vh; background:var(--canvas); color:var(--ink); }
+    .admissions-app { --navy:#17243b; --ink:#17243b; --muted:#758197; --line:#e7ebf1; --canvas:#f4f6f9; --blue:#3659cf; display:flex; min-height:100vh; background:var(--canvas); color:var(--ink); font-family:'Roboto',Arial,sans-serif; }
     .admissions-sidebar { position:fixed; inset:0 auto 0 0; z-index:20; width:238px; display:flex; flex-direction:column; padding:20px 14px 14px; background:var(--navy); color:#fff; }
     .brand-lockup { display:flex; align-items:center; gap:11px; padding:4px 9px 24px; }
-    .brand-symbol { width:38px; height:38px; display:grid; place-items:center; border-radius:11px; background:#fff; color:var(--blue); font-weight:900; font-size:1.2rem; }
+    .brand-symbol { width:42px; height:42px; flex:0 0 42px; display:grid; place-items:center; border-radius:11px; background:#fff; overflow:hidden; }
+    .brand-symbol img { display:block; width:100%; height:100%; object-fit:contain; padding:3px; }
+    .brand-lockup small { color:#aebbd0; font-size:.53rem; letter-spacing:.08em; }
     .brand-lockup div:last-child { display:flex; flex-direction:column; gap:2px; }
     .brand-lockup strong { font-size:1.1rem; letter-spacing:.06em; }
     .brand-lockup span { color:#aebbd0; font-size:.56rem; letter-spacing:.11em; }
@@ -424,7 +427,22 @@
     private string SectionTitle => _section switch { "requests" => "Registration requests", "enrollments" => "Enrollment records", "clearance" => "Student clearance", _ => "Admissions overview" };
     private string SectionSubtitle => _section switch { "requests" => "Review student account requests and verify registrations.", "enrollments" => "Maintain student enrollment records.", "clearance" => "Check a student’s eligibility and record clearance.", _ => "Manage student registration, enrollment, and clearance in one place." };
 
-    protected override async Task OnInitializedAsync() => await LoadAll();
+    private string _accountName = "Admissions";
+    private string _accountRole = "Student records";
+    private string _accountInitials = "AD";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var username = await AuthService.GetAccountUsernameAsync();
+        var role = await AuthService.GetAccountRoleAsync();
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            _accountName = username;
+            _accountInitials = string.Concat(username.Trim().Take(2)).ToUpperInvariant();
+        }
+        _accountRole = role?.ToUpperInvariant() == "ADMISSION" ? "Admissions" : "Account";
+        await LoadAll();
+    }
 
     private async Task LoadAll()
     {
@@ -569,5 +587,9 @@
         if (result.Status == 200) await CheckClearance();
     }
 
-    private void Logout() => Nav.NavigateTo("/login");
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
 }
