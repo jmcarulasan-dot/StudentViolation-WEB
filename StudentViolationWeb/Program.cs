@@ -19,6 +19,7 @@ builder.Services.AddScoped<GuidanceService>();
 builder.Services.AddScoped<SaoService>();
 builder.Services.AddScoped<AdmissionService>();
 builder.Services.AddScoped<SaoOperationsService>();
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://10.131.40.11:5277/") });
+// The web client runs on this PC with the API's local HTTPS development profile.
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7001/") });
 
 await builder.Build().RunAsync();
