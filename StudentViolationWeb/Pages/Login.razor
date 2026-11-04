@@ -86,7 +86,7 @@
                 }
                 else if (loginFlow?.ChallengeId is not null)
                 {
-                    @if (loginFlow.NextStep == "setupAuthenticator" && !string.IsNullOrWhiteSpace(loginFlow.QrCodeDataUri))
+                    @if (loginFlow.RequiresAuthenticatorSetup && !string.IsNullOrWhiteSpace(loginFlow.QrCodeDataUri))
                     {
                         <MudAlert Severity="Severity.Info" Class="mb-4">
                             Scan this code with your authenticator app.
