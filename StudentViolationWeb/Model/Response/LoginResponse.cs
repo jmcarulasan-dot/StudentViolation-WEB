@@ -9,6 +9,8 @@ namespace StudentViolationWeb.Model.Response
 
     public sealed class LoginFlow
     {
+        public bool RequiresAuthenticatorSetup { get; set; }
+        public bool RequiresAuthenticatorCode { get; set; }
         public string? NextStep { get; set; }
         public string? ChallengeId { get; set; }
         public string? AuthenticatorUri { get; set; }
