@@ -96,6 +96,12 @@
                                    @bind-Date="_model.DateOfBirth"
                                    Variant="Variant.Outlined"
                                    InputStyle="color:white;" />
+                    @if (_model.DateOfBirth is DateTime dateOfBirth)
+                    {
+                        <MudText Typo="Typo.caption" Style="grid-column:1 / -1; color:rgba(255,255,255,.78); margin-top:-12px;">
+                            Age today: @CalculateAge(dateOfBirth). This is calculated from your date of birth; it is not assigned from your year level.
+                        </MudText>
+                    }
 
                     <MudSelect T="string" Label="Gender"
                                @bind-Value="_model.Gender"
@@ -234,6 +240,11 @@
             Snackbar.Add("Please select your date of birth.", Severity.Warning);
             return;
         }
+        if (_model.DateOfBirth.Value.Date > DateTime.Today)
+        {
+            Snackbar.Add("Date of birth cannot be in the future.", Severity.Warning);
+            return;
+        }
 
         _isLoading = true;
         try
@@ -258,6 +269,14 @@
         {
             _isLoading = false;
         }
+    }
+
+    private static int CalculateAge(DateTime dateOfBirth)
+    {
+        var today = DateTime.Today;
+        var age = today.Year - dateOfBirth.Year;
+        if (dateOfBirth.Date > today.AddYears(-age)) age--;
+        return age;
     }
 
     // ── Style helpers for role cards ─────────────────────────────────────────

@@ -94,7 +94,11 @@
                             <div><h2>Registration queue</h2><p>Recent student account requests awaiting review.</p></div>
                             <button class="text-link" @onclick='() => SelectSection("requests")'>View queue <MudIcon Icon="@Icons.Material.Filled.ArrowForward" /></button>
                         </div>
-                        @if (_requests is null)
+                        @if (_requests is null && !string.IsNullOrWhiteSpace(_pageError))
+                        {
+                            <div class="empty-state compact"><MudIcon Icon="@Icons.Material.Filled.ErrorOutline" /><span>Registration requests could not be loaded.</span><MudButton Size="Size.Small" OnClick="RefreshCurrent">Try again</MudButton></div>
+                        }
+                        else if (_requests is null)
                         {
                             <div class="loading-line"><MudProgressLinear Indeterminate="true" Color="Color.Primary" /></div>
                         }
@@ -131,7 +135,11 @@
                         <div><h2>Registration requests</h2><p>Verify each request before approving an account.</p></div>
                         <span class="queue-count"><strong>@PendingCount</strong> pending</span>
                     </div>
-                    @if (_requests is null)
+                    @if (_requests is null && !string.IsNullOrWhiteSpace(_pageError))
+                    {
+                        <div class="empty-state"><MudIcon Icon="@Icons.Material.Filled.ErrorOutline" /><strong>Queue unavailable</strong><span>Registration requests could not be loaded.</span><MudButton Variant="Variant.Outlined" OnClick="RefreshCurrent">Try again</MudButton></div>
+                    }
+                    else if (_requests is null)
                     {
                         <div class="loading-line"><MudProgressLinear Indeterminate="true" Color="Color.Primary" /></div>
                     }
@@ -450,7 +458,7 @@
         await Task.WhenAll(requestsTask, enrollmentsTask);
         var requests = await requestsTask;
         var enrollments = await enrollmentsTask;
-        _requests = requests.Data ?? new();
+        _requests = requests.Status >= 400 ? null : requests.Data ?? new();
         _enrollments = enrollments.Data ?? new();
         if (requests.Status >= 400) _pageError = requests.Message;
         else if (enrollments.Status >= 400) _pageError = enrollments.Message;
