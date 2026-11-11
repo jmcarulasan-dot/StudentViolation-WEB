@@ -5,160 +5,198 @@
 @inject ISnackbar Snackbar
 @inject AuthService AuthService
 
-<div style="display:flex; height:100vh; width:100%; font-family:'Segoe UI',sans-serif;
-            background-image:linear-gradient(135deg, #0057B8 0%, #F9FAFB 100%);">
+<div style="display:flex; height:100vh; width:100%; font-family:'Segoe UI',system-ui,sans-serif;
+            background:linear-gradient(135deg, #0e1017 0%, #151821 100%); color:#f2f4f8;">
 
-    @* ── Left Panel ── *@
-    <div style="width:45%; display:flex; flex-direction:column; align-items:center;
-                justify-content:center; padding:60px 80px; flex-shrink:0;">
-        <img src="Image/aclc_logo.png" alt="ACLC Logo" style="width:120px; height:auto;" />
-        <MudText Typo="Typo.h6" Align="Align.Center"
-                 Style="color:#EEEEEE; font-weight:500; margin-bottom:8px;
-                        letter-spacing:2px; text-transform:uppercase;">
-            ACLC College of Mandaue
-        </MudText>
-        <MudText Typo="Typo.h3" Align="Align.Center"
-                 Style="color:#EEEEEE; font-weight:800; margin-bottom:20px; line-height:1.2;">
-            Student Violation System
-        </MudText>
-    </div>
-
-    @* ── Right Panel ── *@
-    <div style="flex:1; overflow-y:auto; padding:60px 80px;">
+    @* ── Left: form ── *@
+    <div style="flex:1; overflow-y:auto; padding:60px 32px; position: center;">
         <div style="width:100%; max-width:720px;
-                    background:rgba(0,87,184,0.10);
-                    backdrop-filter:blur(12px);
-                    -webkit-backdrop-filter:blur(12px);
-                    border:1px solid rgba(17,24,39,0.15);
+                    background:rgba(21,24,33,0.7);
+                    border:1px solid rgba(255,255,255,0.09);
                     border-radius:20px; padding:48px 40px;
-                    box-shadow:0 8px 32px rgba(250,250,250,0.15);">
+                    box-shadow:0 8px 32px rgba(0,0,0,0.45);">
 
-            <MudText Typo="Typo.h4" Style="color:#FAFAFA; font-weight:700; margin-bottom:8px;">
-                Create Account
+            <MudText Typo="Typo.h4" Style="color:#f2f4f8; font-weight:700; margin-bottom:8px;">
+                Create account
             </MudText>
-            <MudText Style="color:rgba(255,255,255,0.5); margin-bottom:40px;">
+            <MudText Style="color:rgba(255,255,255,0.5); margin-bottom:24px;">
                 Submit your student account request. Admissions must approve it before you can sign in.
             </MudText>
 
             <MudForm @ref="_form" @bind-IsValid="_isValid">
 
-                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Student account request</MudText>
-                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
-
-                @* ── Account Info ── *@
-                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Account Info</MudText>
-                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
+                @* ── Account info ── *@
+                <MudText Typo="Typo.overline" Style="color:#8e93a3; letter-spacing:2px; font-size:0.75rem; margin-bottom:8px; display:block;">Account info</MudText>
+                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:16px;" />
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                    <MudTextField T="string" Label="Username"
-                                  @bind-Value="_model.Username"
-                                  Required="true" RequiredError="Required"
-                                  Variant="Variant.Outlined"
-                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
-                    <MudTextField T="string" Label="Email"
-                                  @bind-Value="_model.Email"
-                                  Required="true" RequiredError="Required"
-                                  InputType="InputType.Email"
-                                  Variant="Variant.Outlined"
-                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
+                    <div style="margin-bottom:8px;">
+                        <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Username</MudText>
+                        <MudTextField T="string" Label="Username"
+                                      @bind-Value="_model.Username"
+                                      Required="true" RequiredError="Required"
+                                      Placeholder="Choose a username"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Outlined.Person"
+                                      FullWidth="true"
+                                      Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Email</MudText>
+                        <MudTextField T="string" Label="Email"
+                                      @bind-Value="_model.Email"
+                                      Required="true" RequiredError="Required"
+                                      InputType="InputType.Email"
+                                      Placeholder="you@example.com"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Outlined.Email"
+                                      FullWidth="true"
+                                      Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                    </div>
                 </div>
 
-                <MudTextField T="string" Label="Password"
-                              @bind-Value="_model.Password"
-                              Required="true" RequiredError="Required"
-                              InputType="@_pwdType"
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@_pwdIcon"
-                              OnAdornmentClick="TogglePassword"
-                              Class="mb-8"
-                              InputStyle="color:white;" Style="color:#FAFAFA;" />
+                <div style="margin-bottom:16px;">
+                    <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Password</MudText>
+                    <MudTextField T="string" Label="Password"
+                                  @bind-Value="_model.Password"
+                                  Required="true" RequiredError="Required"
+                                  Placeholder="Create a password"
+                                  InputType="@_pwdType"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@_pwdIcon"
+                                  OnAdornmentClick="TogglePassword"
+                                  FullWidth="true"
+                                  Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                </div>
 
-                @* ── Personal Info ── *@
-                <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Personal Info</MudText>
-                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
+                @* ── Personal info ── *@
+                <MudText Typo="Typo.overline" Style="color:#8e93a3; letter-spacing:2px; font-size:0.75rem; margin:24px 0 8px; display:block;">Personal info</MudText>
+                <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:16px;" />
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                    <MudTextField T="string" Label="First Name"
-                                  @bind-Value="_model.FirstName"
-                                  Required="true" RequiredError="Required"
-                                  Variant="Variant.Outlined"
-                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
-                    <MudTextField T="string" Label="Last Name"
-                                  @bind-Value="_model.LastName"
-                                  Required="true" RequiredError="Required"
-                                  Variant="Variant.Outlined"
-                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
-
-                    @* _model.DateOfBirth is DateTime? — MudDatePicker @bind-Date expects DateTime?
-                       This is the only correct binding. No string, no conversion here. *@
-                    <MudDatePicker Label="Date of Birth"
-                                   @bind-Date="_model.DateOfBirth"
-                                   Variant="Variant.Outlined"
-                                   InputStyle="color:white;" />
-
-                    <MudSelect T="string" Label="Gender"
-                               @bind-Value="_model.Gender"
-                               Variant="Variant.Outlined"
-                               Style="color:#FAFAFA;" InputStyle="color:white;">
-                        <MudSelectItem Value="@("male")">Male</MudSelectItem>
-                        <MudSelectItem Value="@("female")">Female</MudSelectItem>
-                    </MudSelect>
+                    <div style="margin-bottom:8px;">
+                        <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">First name</MudText>
+                        <MudTextField T="string"
+                                      @bind-Value="_model.FirstName"
+                                      Required="true" RequiredError="Required"
+                                      Placeholder="First name"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense"
+                                      FullWidth="true"
+                                      Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Last name</MudText>
+                        <MudTextField T="string"
+                                      @bind-Value="_model.LastName"
+                                      Required="true" RequiredError="Required"
+                                      Placeholder="Last name"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense"
+                                      FullWidth="true"
+                                      Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                    </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:36px;">
-                    <MudTextField T="string" Label="Address"
-                                  @bind-Value="_model.Address"
-                                  Required="true" RequiredError="Required"
-                                  Variant="Variant.Outlined"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Home"
-                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
-                    <MudTextField T="string" Label="Phone Number (09XXXXXXXXX)"
+                @* _model.DateOfBirth is DateTime? — MudDatePicker @bind-Date expects DateTime? *@
+                <div style="margin-bottom:16px;">
+                    <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Date of birth</MudText>
+                    <MudDatePicker @bind-Date="_model.DateOfBirth"
+                                   Placeholder="Select date"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div style="margin-bottom:8px;">
+                        <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Gender</MudText>
+                        <MudSelect T="string"
+                                   @bind-Value="_model.Gender"
+                                   Placeholder="Select gender"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   FullWidth="true"
+                                   Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;">
+                            <MudSelectItem Value="@("male")">Male</MudSelectItem>
+                            <MudSelectItem Value="@("female")">Female</MudSelectItem>
+                        </MudSelect>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Address</MudText>
+                        <MudTextField T="string"
+                                      @bind-Value="_model.Address"
+                                      Required="true" RequiredError="Required"
+                                      Placeholder="Home address"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Outlined.Home"
+                                      FullWidth="true"
+                                      Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                    </div>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Phone number</MudText>
+                    <MudTextField T="string"
                                   @bind-Value="_model.Number"
                                   Required="true" RequiredError="Required"
-                                  Variant="Variant.Outlined"
+                                  Placeholder="09XXXXXXXXX"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
                                   Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Phone"
-                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
+                                  AdornmentIcon="@Icons.Material.Outlined.Phone"
+                                  FullWidth="true"
+                                  Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
                 </div>
 
-                @* ── Student Info ── *@
+                @* ── Student info ── *@
                 @if (_model.Role == "student")
                 {
-                    <MudText Typo="Typo.overline" Style="color:#FAFAFA; letter-spacing:2px;">Student Info</MudText>
-                    <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:20px;" />
+                    <MudText Typo="Typo.overline" Style="color:#8e93a3; letter-spacing:2px; font-size:0.75rem; margin:24px 0 8px; display:block;">Student info</MudText>
+                    <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:16px;" />
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:36px;">
-                        <MudTextField T="string" Label="Student No. (C26-01-0001-MAN121)"
-                                      @bind-Value="_model.StudentNo"
-                                      Required="true" RequiredError="Required"
-                                      Variant="Variant.Outlined"
-                                      Adornment="Adornment.Start"
-                                      AdornmentIcon="@Icons.Material.Filled.Badge"
-                                      InputStyle="color:white;" Style="color:#FAFAFA;" />
-                        <MudSelect T="string" Label="Course"
-                                   @bind-Value="_model.Course"
-                                   Required="true" RequiredError="Required"
-                                   Variant="Variant.Outlined"
-                                   Adornment="Adornment.Start"
-                                   AdornmentIcon="@Icons.Material.Filled.MenuBook"
-                                   InputStyle="color:white;" Style="color:#FAFAFA;">
-                            <MudSelectItem Value="@("BSIT")">BSIT</MudSelectItem>
-                            <MudSelectItem Value="@("BSA")">BSA</MudSelectItem>
-                            <MudSelectItem Value="@("BSBA")">BSBA</MudSelectItem>
-                            <MudSelectItem Value="@("BSCS")">BSCS</MudSelectItem>
-                            <MudSelectItem Value="@("BSHM")">BSHM</MudSelectItem>
-                        </MudSelect>
-                        <MudSelect T="string" Label="Year Level"
-                                   @bind-Value="_model.Year"
-                                   Variant="Variant.Outlined"
-                                   Style="color:#FAFAFA;" InputStyle="color:white;">
-                            <MudSelectItem Value="@("1")">1st Year</MudSelectItem>
-                            <MudSelectItem Value="@("2")">2nd Year</MudSelectItem>
-                            <MudSelectItem Value="@("3")">3rd Year</MudSelectItem>
-                            <MudSelectItem Value="@("4")">4th Year</MudSelectItem>
-                        </MudSelect>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
+                        <div style="margin-bottom:8px;">
+                            <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Student no.</MudText>
+                            <MudTextField T="string"
+                                          @bind-Value="_model.StudentNo"
+                                          Required="true" RequiredError="Required"
+                                          Placeholder="C26-01-0001-MAN121"
+                                          Variant="Variant.Outlined" Margin="Margin.Dense"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Outlined.Badge"
+                                          FullWidth="true"
+                                          Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Course</MudText>
+                            <MudSelect T="string"
+                                       @bind-Value="_model.Course"
+                                       Required="true" RequiredError="Required"
+                                       Placeholder="Select course"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense"
+                                       FullWidth="true"
+                                       Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;">
+                                <MudSelectItem Value="@("BSIT")">BSIT</MudSelectItem>
+                                <MudSelectItem Value="@("BSA")">BSA</MudSelectItem>
+                                <MudSelectItem Value="@("BSBA")">BSBA</MudSelectItem>
+                                <MudSelectItem Value="@("BSCS")">BSCS</MudSelectItem>
+                                <MudSelectItem Value="@("BSHM")">BSHM</MudSelectItem>
+                            </MudSelect>
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Year level</MudText>
+                            <MudSelect T="string"
+                                       @bind-Value="_model.Year"
+                                       Placeholder="Select year"
+                                       Variant="Variant.Outlined" Margin="Margin.Dense"
+                                       FullWidth="true"
+                                       Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;">
+                                <MudSelectItem Value="@("1")">1st Year</MudSelectItem>
+                                <MudSelectItem Value="@("2")">2nd Year</MudSelectItem>
+                                <MudSelectItem Value="@("3")">3rd Year</MudSelectItem>
+                                <MudSelectItem Value="@("4")">4th Year</MudSelectItem>
+                            </MudSelect>
+                        </div>
                     </div>
                 }
 
@@ -167,9 +205,7 @@
             <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large"
                        OnClick="HandleRegister"
                        Disabled="@(!_isValid || _isLoading || string.IsNullOrEmpty(_model.Role))"
-                       Style="background:#111827; color:white; font-weight:700;
-                              font-size:1rem; border-radius:8px; padding:16px;
-                              text-transform:none; margin-bottom:20px;">
+                       Style="background:linear-gradient(90deg,#a6e8d8,#7fd6c2); color:#0e1017; font-weight:700; font-size:0.98rem; border-radius:10px; padding:13px 16px; text-transform:none; margin-top:8px; box-shadow:0 8px 24px rgba(166,232,216,0.22);">
                 @if (_isLoading)
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right:8px;" />
@@ -177,17 +213,62 @@
                 }
                 else
                 {
-                    <span>Submit for Admission Approval</span>
+                    <span>Submit for Admission approval</span>
                 }
             </MudButton>
 
-            <MudText Align="Align.Center" Style="color:#F9FAFB; font-size:0.9rem; padding-bottom:40px;">
+            <p style="text-align:center; font-size:0.9rem; color:rgba(255,255,255,0.6); margin:24px 0 0;">
                 Already have an account?
-                <MudLink Href="/login" Color="Color.Inherit"
-                         Style="color:#F9FAFB; font-weight:700; margin-left:4px;">
-                    Sign In
-                </MudLink>
-            </MudText>
+                <MudLink Href="/login"
+                         Style="color:#a6e8d8; font-weight:700; margin-left:4px; text-decoration:none;">Sign in</MudLink>
+            </p>
+        </div>
+    </div>
+
+    @* ── Right: picture panel ── *@
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; padding:56px; overflow:hidden;
+                background:linear-gradient(180deg,rgba(14,16,23,0.55) 0%,rgba(14,16,23,0.82) 100%),
+                           radial-gradient(circle at 70% 20%,#1d3b3a 0%,#0e1017 65%);
+                border-left:1px solid rgba(255,255,255,0.09);">
+
+        <div style="position:absolute; top:48px; left:56px; display:inline-flex; align-items:center; gap:8px;
+                    padding:8px 16px; border-radius:999px; font-size:0.85rem; color:#f2f4f8;
+                    background:rgba(21,24,33,0.7); border:1px solid rgba(255,255,255,0.18); backdrop-filter:blur(8px);">
+            <MudIcon Icon="@Icons.Material.Filled.Bolt" Style="color:#a6e8d8; font-size:1.1rem;" />
+            <span>Student Affairs Office</span>
+        </div>
+
+        <MudText Typo="Typo.h3"
+                 Style="color:#f2f4f8; font-weight:700; line-height:1.12; margin:0 0 18px;">
+            One request,
+            <span style="color:#a6e8d8; display:block;">reviewed by Admissions.</span>
+        </MudText>
+        <MudText Typo="Typo.body1"
+                 Style="color:rgba(242,244,248,0.82); line-height:1.6; margin:0 0 32px; max-width:460px;">
+            Fill in your details once. You can sign in as soon as your account is approved.
+        </MudText>
+
+        <div style="display:flex; align-items:center; gap:16px; max-width:440px; padding:16px 18px; margin-bottom:14px;
+                    border-radius:14px; background:rgba(21,24,33,0.62); border:1px solid rgba(255,255,255,0.09); backdrop-filter:blur(10px);">
+            <div style="width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+                        background:rgba(166,232,216,0.14); color:#a6e8d8; flex-shrink:0;">
+                <MudIcon Icon="@Icons.Material.Filled.HowToReg" />
+            </div>
+            <div>
+                <b style="color:#f2f4f8;">Admission approval</b>
+                <div style="color:#8e93a3; font-size:0.85rem;">Every student account is verified</div>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px; max-width:440px; padding:16px 18px; margin-bottom:14px;
+                    border-radius:14px; background:rgba(21,24,33,0.62); border:1px solid rgba(255,255,255,0.09); backdrop-filter:blur(10px);">
+            <div style="width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+                        background:rgba(166,232,216,0.14); color:#a6e8d8; flex-shrink:0;">
+                <MudIcon Icon="@Icons.Material.Filled.Shield" />
+            </div>
+            <div>
+                <b style="color:#f2f4f8;">Secure access</b>
+                <div style="color:#8e93a3; font-size:0.85rem;">Sign-in protected by an authenticator code</div>
+            </div>
         </div>
     </div>
 </div>

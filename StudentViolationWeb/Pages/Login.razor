@@ -5,113 +5,99 @@
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 
+<div style="display:flex; height:100vh; width:100%; font-family:'Segoe UI',system-ui,sans-serif; background:linear-gradient(135deg,#0e1017 0%, #151821 100%); color:#f2f4f8;">
 
+    @* ── Left: brand + form ── *@
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 32px; overflow-y:auto;">
+        <div style="display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:28px;">
+            <img src="Image/aclc_logo.png" alt="ACLC Logo" style="width:70px; height:84px; border-radius:22px; margin-bottom:18px;" />
+            <MudText Typo="Typo.h3" Style="color:#f2f4f8; font-weight:700; letter-spacing:0.2px; margin:0 0 8px;">Student Violation System</MudText>
+            <MudText Typo="Typo.body2" Style="color:#8e93a3; margin:0;">ACLC College of Mandaue</MudText>
+        </div>
 
-
-<div style="display: flex; height: 100vh; width: 100%; font-family: 'Segoe UI', sans-serif; background-image: linear-gradient(135deg,#F9FAFB 0% , #0057B8 0%, #F9FAFB 100%); ">
-
-    @*left *@
-    <div style="width: 45%;  display: flex; flex-direction: column;
-                align-items: center; justify-content: center; padding: 60px 80px; flex-shrink: 0;">
-
-        <img src="Image/aclc_logo.png"
-             alt="ACLC Logo"
-             style="width: 120px; height: auto;" />
-        <MudText Typo="Typo.h6" Align="Align.Center"
-                 Style="color: #EEEEEE; font-weight: 500; margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase;">
-            ACLC College of Mandaue
-        </MudText>
-        <MudText Typo="Typo.h3" Align="Align.Center"
-                 Style="color: #EEEEEE; font-weight: 800; margin-bottom: 20px; line-height: 1.2;">
-            Student Violation System
-        </MudText>
-
-    </div>
-
-    @* right *@
-    <div style="flex: 1; display: flex; flex-direction: column;
-                align-items: center; justify-content: center;
-                background: rgba(255,255,255,0.00); padding: 60px 80px; overflow-y: auto;">
-
-        <div style="width: 100%; max-width: 480px;
-                background: rgba(0, 87, 184, 0.10);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border: 1px solid rgba(17,24,39,0.15);
-                border-radius: 20px;
-                padding: 48px 40px;
-                box-shadow: 0 8px 32px rgba(250,250,250,0.15);">
-
-            <MudText Typo="Typo.h4" Style="color: white; font-weight: 700; margin-bottom: 8px;">
-                Welcome back
-            </MudText>
-            <MudText Typo="Typo.body1" Style="color: rgba(255,255,255,0.5); margin-bottom: 40px;">
-                Sign in to your account to continue
-            </MudText>
+        <MudPaper Elevation="8" Style="width:100%; max-width:440px; background:#151821; border:1px solid rgba(255,255,255,0.09); border-radius:20px; padding:36px 32px; box-shadow:0 20px 60px rgba(0,0,0,0.45);">
+            <MudText Typo="Typo.h4" Style="color:#f2f4f8; font-weight:700; margin:0 0 4px;">Welcome back</MudText>
+            <MudText Typo="Typo.body2" Style="color:#8e93a3; margin:0 0 26px;">Sign in to your account to continue</MudText>
 
             <MudForm @ref="form" @bind-IsValid="isValid">
 
-                <MudText Style="color: #EEEEEE; font-size: 0.85rem; margin-bottom: 6px;">Username</MudText>
-                <MudTextField T="string"
-                              @bind-Value="username"
-                              Required="true"
-                              RequiredError="Username is required"
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@Icons.Material.Filled.Person"
-                              Class="mb-5"
-                              Style="color: #EEEEEE;"
-                              InputStyle="color: default;" />
+                <div style="margin-bottom:16px;">
+                    <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Username</MudText>
+                    <MudTextField T="string"
+                                  @bind-Value="username"
+                                  Required="true"
+                                  RequiredError="Username is required"
+                                  Placeholder="Enter your username"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Outlined.Person"
+                                  FullWidth="true"
+                                  Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                </div>
 
-                <MudText Style="color: #EEEEEE; font-size: 0.85rem; margin-bottom: 6px;">Password</MudText>
-                <MudTextField T="string"
-                              @bind-Value="password"
-                              Required="true"
-                              RequiredError="Password is required"
-                              InputType="@pwdType"
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@pwdIcon"
-                              OnAdornmentClick="TogglePassword"
-                              Class="mb-4"
-                              Style="color: #EEEEEE;"
-                              InputStyle="color: default;" />
+                <div style="margin-bottom:16px;">
+                    <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Password</MudText>
+                    <MudTextField T="string"
+                                  @bind-Value="password"
+                                  Required="true"
+                                  RequiredError="Password is required"
+                                  Placeholder="Enter your password"
+                                  InputType="@pwdType"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@pwdIcon"
+                                  OnAdornmentClick="TogglePassword"
+                                  FullWidth="true"
+                                  Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                </div>
 
                 @if (showRecoveryCodes)
                 {
-                    <MudAlert Severity="Severity.Success" Class="mb-4">
+                    <MudAlert Severity="Severity.Success"
+                              Style="background:rgba(166,232,216,0.08); color:#f2f4f8; border:1px solid rgba(166,232,216,0.25); border-radius:12px; margin-bottom:16px;">
                         Save these recovery codes now. Each can be used once.
-                        <MudText Typo="Typo.body2">@string.Join("   ", loginFlow?.RecoveryCodes ?? new List<string>())</MudText>
+                        <MudText Typo="Typo.body2">@string.Join("    ", loginFlow?.RecoveryCodes ?? new List<string>())</MudText>
                     </MudAlert>
                 }
                 else if (loginFlow?.ChallengeId is not null)
                 {
                     @if (loginFlow.RequiresAuthenticatorSetup && !string.IsNullOrWhiteSpace(loginFlow.QrCodeDataUri))
                     {
-                        <MudAlert Severity="Severity.Info" Class="mb-4">
+                        <MudAlert Severity="Severity.Info"
+                                  Style="background:rgba(166,232,216,0.08); color:#f2f4f8; border:1px solid rgba(166,232,216,0.25); border-radius:12px; margin-bottom:16px;">
                             Scan this code with your authenticator app.
-                            <img src="@loginFlow.QrCodeDataUri" alt="Authenticator setup QR code" style="display:block;width:190px;height:190px;margin:12px auto;background:white;padding:8px" />
+                            <img src="@loginFlow.QrCodeDataUri" alt="Authenticator setup QR code"
+                                 style="display:block;width:190px;height:190px;margin:12px auto;background:white;padding:8px" />
                             @if (!string.IsNullOrWhiteSpace(loginFlow.ManualEntryKey))
                             {
-                                <div>Manual setup key: <b>@loginFlow.ManualEntryKey</b></div>
+                                <div style="margin-top:8px;">Manual setup key: <b>@loginFlow.ManualEntryKey</b></div>
                             }
                         </MudAlert>
                     }
-                    <MudTextField T="string" @bind-Value="authCode" Label="Authenticator or recovery code"
-                                  Required="true" Variant="Variant.Outlined" Class="mb-4" />
+                    <div style="margin-bottom:16px;">
+                        <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">Authenticator or recovery code</MudText>
+                        <MudTextField T="string"
+                                      @bind-Value="authCode"
+                                      Placeholder="Enter your code"
+                                      Required="true"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      FullWidth="true"
+                                      Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
+                    </div>
                 }
 
-                <MudStack Row="true" Justify="Justify.SpaceBetween"
-                          AlignItems="AlignItems.Center" Class="mb-6">
-                    <MudCheckBox T="bool" @bind-Checked="rememberMe"
+                <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0 22px;">
+                    <MudCheckBox T="bool"
                                  Label="Remember me"
+                                 @bind-Checked="rememberMe"
                                  Color="Color.Inherit"
-                                 Style="color: #EEEEEE;" />
-                    <MudLink Color="Color.Default"
-                             Style="font-size: 0.85rem; color: #111827; cursor: pointer;">
-                        Forgot Password?
-                    </MudLink>
-                </MudStack>
+                                 Style="color:#f2f4f8; margin-left:-8px;" />
+                    <MudLink Href="#"
+                             Style="color:#a6e8d8; font-weight:600; font-size:0.88rem; cursor:pointer;">Forgot password?</MudLink>
+                </div>
 
                 @if (isLoading)
                 {
@@ -119,10 +105,8 @@
                                FullWidth="true"
                                Size="Size.Large"
                                Disabled="true"
-                               Style="background: #111827; color: #EEEEEE; font-weight: 700;
-                                              font-size: 1rem; border-radius: 8px; padding: 16px;
-                                              text-transform: none; letter-spacing: 0;">
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right: 8px;" />
+                               Style="background:#7fd6c2; color:#0e1017; font-weight:700; font-size:0.98rem; border-radius:10px; padding:13px 16px; text-transform:none; box-shadow:0 8px 24px rgba(166,232,216,0.22);">
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right:8px;" />
                         Signing In...
                     </MudButton>
                 }
@@ -133,29 +117,67 @@
                                Size="Size.Large"
                                Disabled="!isValid"
                                OnClick="HandleContinue"
-                               Style="background: #111827; color: #EEEEEE; font-weight: 700;
-                                              font-size: 1rem; border-radius: 8px; padding: 16px;
-                                              text-transform: none; letter-spacing: 0;">
+                               Style="background:linear-gradient(90deg,#a6e8d8,#7fd6c2); color:#0e1017; font-weight:700; font-size:0.98rem; border-radius:10px; padding:13px 16px; text-transform:none; box-shadow:0 8px 24px rgba(166,232,216,0.22);">
                         @(showRecoveryCodes ? "Continue" : loginFlow?.ChallengeId is not null ? "Verify code" : "Sign In")
                     </MudButton>
                 }
 
             </MudForm>
 
-            <MudDivider Style="border-color: rgba(17,24,39,0.15);margin: 32px 0;" />
-
-            <MudText Align="Align.Center" Style="color:#EEEEEE; font-size: 0.9rem;">
+            <p style="text-align:center; font-size:0.9rem; color:#8e93a3; margin:24px 0 0; padding-top:20px; border-top:1px solid rgba(255,255,255,0.09);">
                 Don't have an account?
                 <MudLink Href="/register"
-                         Color="Color.Inherit"
-                         Style="color: #0057B8; font-weight: 700; margin-left: 4px;">
-                    Create Account
-                </MudLink>
-            </MudText>
-
-        </div>
+                         Style="color:#a6e8d8; font-weight:700; margin-left:4px; text-decoration:none;">Create account</MudLink>
+            </p>
+        </MudPaper>
     </div>
 
+    @* ── Right: hero panel ── *@
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; padding:56px; overflow:hidden;
+                background:linear-gradient(180deg,rgba(14,16,23,0.55) 0%,rgba(14,16,23,0.82) 100%),
+                           radial-gradient(circle at 70% 20%,#1d3b3a 0%,#0e1017 65%);
+                border-left:1px solid rgba(255,255,255,0.09);">
+
+        <div style="position:absolute; top:48px; left:56px; display:inline-flex; align-items:center; gap:8px;
+                    padding:8px 16px; border-radius:999px; font-size:0.85rem; color:#f2f4f8;
+                    background:rgba(21,24,33,0.7); border:1px solid rgba(255,255,255,0.18); backdrop-filter:blur(8px);">
+            <MudIcon Icon="@Icons.Material.Filled.Bolt" Style="color:#a6e8d8; font-size:1.1rem;" />
+            <span>Student Affairs Office</span>
+        </div>
+
+        <MudText Typo="Typo.h3"
+                 Style="color:#f2f4f8; font-weight:700; line-height:1.12; margin:0 0 18px;">
+            Keep student records
+            <span style="color:#a6e8d8; display:block;">clear and fair.</span>
+        </MudText>
+        <MudText Typo="Typo.body1"
+                 Style="color:rgba(242,244,248,0.82); line-height:1.6; margin:0 0 32px; max-width:460px;">
+            Review violations, appeals, and student cases in one place at ACLC College of Mandaue.
+        </MudText>
+
+        <div style="display:flex; align-items:center; gap:16px; max-width:440px; padding:16px 18px; margin-bottom:14px;
+                    border-radius:14px; background:rgba(21,24,33,0.62); border:1px solid rgba(255,255,255,0.09); backdrop-filter:blur(10px);">
+            <div style="width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+                        background:rgba(166,232,216,0.14); color:#a6e8d8; flex-shrink:0;">
+                <MudIcon Icon="@Icons.Material.Filled.WarningAmber" />
+            </div>
+            <div>
+                <b style="color:#f2f4f8;">Violation records</b>
+                <div style="color:#8e93a3; font-size:0.85rem;">Log and review every case</div>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px; max-width:440px; padding:16px 18px; margin-bottom:14px;
+                    border-radius:14px; background:rgba(21,24,33,0.62); border:1px solid rgba(255,255,255,0.09); backdrop-filter:blur(10px);">
+            <div style="width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+                        background:rgba(166,232,216,0.14); color:#a6e8d8; flex-shrink:0;">
+                <MudIcon Icon="@Icons.Material.Filled.Shield" />
+            </div>
+            <div>
+                <b style="color:#f2f4f8;">Secure access</b>
+                <div style="color:#8e93a3; font-size:0.85rem;">Sign-in protected by an authenticator code</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
