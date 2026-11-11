@@ -3,6 +3,7 @@ using StudentViolationWeb.Model;
 using StudentViolationWeb.Model.Response;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace StudentViolationWeb.Data;
 
@@ -53,10 +54,29 @@ public sealed class AdmissionService
         try
         {
             await AttachTokenAsync();
-            return await _http.GetFromJsonAsync<ApiResponse<List<AdmissionRegistrationRequest>>>("api/admission/registration-requests")
-                ?? new() { Status = 500, Message = "The server returned an empty response." };
+            using var response = await _http.GetAsync("api/admission/registration-requests");
+            if (!response.IsSuccessStatusCode)
+                return new() { Status = (int)response.StatusCode, Message = $"Could not load registration requests (HTTP {(int)response.StatusCode}). Check that the API and database are running." };
+
+            try
+            {
+                return await response.Content.ReadFromJsonAsync<ApiResponse<List<AdmissionRegistrationRequest>>>()
+                    ?? new() { Status = 500, Message = "The API returned an empty response for registration requests." };
+            }
+            catch (JsonException)
+            {
+                var contentType = response.Content.Headers.ContentType?.MediaType ?? "unknown";
+                return new() { Status = 502, Message = $"The API returned an invalid response for registration requests (content type: {contentType}). Check the API/database logs." };
+            }
         }
-        catch (Exception ex) { return new() { Status = 500, Message = ex.Message }; }
+        catch (HttpRequestException)
+        {
+            return new() { Status = 503, Message = "Could not connect to the API. Make sure the SVS API is running." };
+        }
+        catch (Exception)
+        {
+            return new() { Status = 500, Message = "Registration requests could not be loaded. Check the API and database logs." };
+        }
     }
 
     public async Task<ApiStatusResponse> ApproveRegistrationAsync(int id) => await SendStatusAsync(

@@ -77,6 +77,7 @@
                 <MudDivider Style="border-color:rgba(255,255,255,0.15); margin-bottom:16px;" />
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+<<<<<<< HEAD
                     <div style="margin-bottom:8px;">
                         <MudText Style="display:block; font-size:0.85rem; font-weight:600; color:#f2f4f8; margin-bottom:6px;">First name</MudText>
                         <MudTextField T="string"
@@ -97,6 +98,39 @@
                                       FullWidth="true"
                                       Style="--mud-paper-filled-bg:#1b1e29; color:#f2f4f8;" />
                     </div>
+=======
+                    <MudTextField T="string" Label="First Name"
+                                  @bind-Value="_model.FirstName"
+                                  Required="true" RequiredError="Required"
+                                  Variant="Variant.Outlined"
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
+                    <MudTextField T="string" Label="Last Name"
+                                  @bind-Value="_model.LastName"
+                                  Required="true" RequiredError="Required"
+                                  Variant="Variant.Outlined"
+                                  InputStyle="color:white;" Style="color:#FAFAFA;" />
+
+                    @* _model.DateOfBirth is DateTime? — MudDatePicker @bind-Date expects DateTime?
+                       This is the only correct binding. No string, no conversion here. *@
+                    <MudDatePicker Label="Date of Birth"
+                                   @bind-Date="_model.DateOfBirth"
+                                   Variant="Variant.Outlined"
+                                   InputStyle="color:white;" />
+                    @if (_model.DateOfBirth is DateTime dateOfBirth)
+                    {
+                        <MudText Typo="Typo.caption" Style="grid-column:1 / -1; color:rgba(255,255,255,.78); margin-top:-12px;">
+                            Age today: @CalculateAge(dateOfBirth). This is calculated from your date of birth; it is not assigned from your year level.
+                        </MudText>
+                    }
+
+                    <MudSelect T="string" Label="Gender"
+                               @bind-Value="_model.Gender"
+                               Variant="Variant.Outlined"
+                               Style="color:#FAFAFA;" InputStyle="color:white;">
+                        <MudSelectItem Value="@("male")">Male</MudSelectItem>
+                        <MudSelectItem Value="@("female")">Female</MudSelectItem>
+                    </MudSelect>
+>>>>>>> bab02b890becba6e7d62ede8fd1343059dc6cb01
                 </div>
 
                 @* _model.DateOfBirth is DateTime? — MudDatePicker @bind-Date expects DateTime? *@
@@ -315,6 +349,11 @@
             Snackbar.Add("Please select your date of birth.", Severity.Warning);
             return;
         }
+        if (_model.DateOfBirth.Value.Date > DateTime.Today)
+        {
+            Snackbar.Add("Date of birth cannot be in the future.", Severity.Warning);
+            return;
+        }
 
         _isLoading = true;
         try
@@ -339,6 +378,14 @@
         {
             _isLoading = false;
         }
+    }
+
+    private static int CalculateAge(DateTime dateOfBirth)
+    {
+        var today = DateTime.Today;
+        var age = today.Year - dateOfBirth.Year;
+        if (dateOfBirth.Date > today.AddYears(-age)) age--;
+        return age;
     }
 
     // ── Style helpers for role cards ─────────────────────────────────────────
